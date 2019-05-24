@@ -1,0 +1,30 @@
+settings:
+  recovery:
+    index: true
+    events: false
+    tools: false
+  legacy:
+    force: false
+    interval: 0s
+schema:
+- name: kudaki-rental-service
+  path: .
+  commands:
+    clean:
+      status: true
+    run:
+      status: true
+  args:
+    - -- KAFKA_BROKERS 178.62.107.160:29092
+  watcher:
+    extensions:
+    - go
+    paths:
+    - /
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor
+    scripts:
+    - type: before
+      command: taskkill /IM "kudaki-rental-service.exe" /F
