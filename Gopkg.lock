@@ -61,6 +61,20 @@
   version = "v1.4.1"
 
 [[projects]]
+  digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
+  name = "github.com/golang/protobuf"
+  packages = [
+    "proto",
+    "ptypes",
+    "ptypes/any",
+    "ptypes/duration",
+    "ptypes/timestamp",
+  ]
+  pruneopts = "UT"
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
+
+[[projects]]
   digest = "1:e4f5819333ac698d294fe04dbf640f84719658d5c7ce195b10060cc37292ce79"
   name = "github.com/golang/snappy"
   packages = ["."]
@@ -86,6 +100,20 @@
   ]
   pruneopts = "UT"
   revision = "e8e0b4523d2600181fc0d74d30375bde65ac88ab"
+
+[[projects]]
+  branch = "master"
+  digest = "1:b52b591512b170986451be37e901ed85e5f2e9fc7c2e68954154a6064a971951"
+  name = "github.com/ilhammhdd/kudaki-entities"
+  packages = [
+    "events",
+    "mountain",
+    "rental",
+    "store",
+    "user",
+  ]
+  pruneopts = "UT"
+  revision = "af855b20adb258aff45ae26c032c6fd3356acde8"
 
 [[projects]]
   digest = "1:259f9b7645983a7a823318d78aa96dec68af8891f706493ac1ec04d819cb977c"
@@ -128,9 +156,12 @@
   input-imports = [
     "github.com/RediSearch/redisearch-go/redisearch",
     "github.com/go-sql-driver/mysql",
+    "github.com/golang/protobuf/proto",
+    "github.com/golang/protobuf/ptypes",
     "github.com/google/uuid",
     "github.com/ilhammhdd/go-toolkit/errorkit",
     "github.com/ilhammhdd/go-toolkit/safekit",
+    "github.com/ilhammhdd/kudaki-entities/events",
     "gopkg.in/Shopify/sarama.v1",
   ]
   solver-name = "gps-cdcl"

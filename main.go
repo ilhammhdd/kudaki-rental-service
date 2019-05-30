@@ -5,11 +5,9 @@ import (
 	"strings"
 
 	"github.com/ilhammhdd/go-toolkit/safekit"
+
 	"github.com/ilhammhdd/kudaki-rental-service/externals/eventdriven"
-
 	"github.com/ilhammhdd/kudaki-rental-service/externals/mysql"
-
-	"github.com/ilhammhdd/kudaki-rental-service/externals/kudakiredisearch"
 )
 
 func init() {
@@ -20,14 +18,13 @@ func init() {
 		}
 	}
 
-	kudakiredisearch.InitClient()
 	mysql.OpenDB(os.Getenv("DB_PATH"), os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
 }
 
 func main() {
 	wp := safekit.NewWorkerPool()
 
-	wp.Work <- eventdriven.Rental
+	wp.Work <- eventdriven.SubmitRental
 
 	wp.PoolWG.Wait()
 }

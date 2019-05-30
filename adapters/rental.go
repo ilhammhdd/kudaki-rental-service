@@ -1,24 +1,27 @@
 package adapters
 
-type EventDrivenAdapter interface {
-	Adapt(msg []byte) bool
-	Log(partition int32, offset int64, key string)
-}
+import (
+	"github.com/ilhammhdd/go-toolkit/errorkit"
 
-type SubmitRental struct {
-	usecase func()
-}
+	"github.com/golang/protobuf/proto"
+	"github.com/ilhammhdd/kudaki-entities/events"
+)
 
-func (sr *SubmitRental) Adapt(msg []byte) bool {
-	stat := false
+type SubmitRental struct{}
 
-	if stat {
-		sr.usecase()
+func (sr *SubmitRental) ParseIn(msg []byte) (proto.Message, bool) {
+	var in events.CheckoutRequested
+	if err := proto.Unmarshal(msg, &in); err == nil {
+		return &in, true
 	}
 
-	return stat
+	return nil, false
 }
 
-func (sr *SubmitRental) Log(partition int32, offset int64, key string) {
+func (sr *SubmitRental) ParseOut(out proto.Message) (key string, message []byte) {
+	outEvent := out.(*events.Checkedout)
+	outEventByte, err := proto.Marshal(outEvent)
+	errorkit.ErrorHandled(err)
 
+	return outEvent.Uid, outEventByte
 }

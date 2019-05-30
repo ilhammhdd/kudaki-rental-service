@@ -4,6 +4,14 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/ilhammhdd/kudaki-rental-service/externals/kudakiredisearch"
+
+	"github.com/ilhammhdd/kudaki-rental-service/externals/mysql"
+
+	"github.com/ilhammhdd/kudaki-rental-service/usecases"
+
+	"github.com/ilhammhdd/kudaki-entities/events"
+
 	"github.com/ilhammhdd/kudaki-rental-service/adapters"
 
 	"github.com/google/uuid"
@@ -16,16 +24,23 @@ import (
 const TOTAL_CONSUMER_MEMBER = 5
 
 type EventDrivenConsumer struct {
-	topics             []string
+	inTopics           []string
 	eventName          string
 	eventDrivenAdapter adapters.EventDrivenAdapter
+	eventDrivenUsecase usecases.EventDrivenUsecase
+	outTopic           string
 }
 
-func (edc *EventDrivenConsumer) consume() {
+func (edc *EventDrivenConsumer) produce(key string, msg []byte) {
+
+}
+
+func (edc *EventDrivenConsumer) handle() {
 	groupID := uuid.New().String()
+	cl := adapters.ConsumerLog{EventName: edc.eventName}
 
 	for i := 0; i < TOTAL_CONSUMER_MEMBER; i++ {
-		consMember := kafka.NewConsumptionMember(groupID, edc.topics, sarama.OffsetNewest, edc.eventName, i)
+		consMember := kafka.NewConsumptionMember(groupID, edc.inTopics, sarama.OffsetNewest, edc.eventName, i)
 		signals := make(chan os.Signal)
 		signal.Notify(signals)
 
@@ -35,8 +50,11 @@ func (edc *EventDrivenConsumer) consume() {
 			for {
 				select {
 				case msg := <-consMember.Messages:
-					if edc.eventDrivenAdapter.Adapt(msg.Value) {
-						edc.eventDrivenAdapter.Log(msg.Partition, msg.Offset, string(msg.Key))
+					if in, ok := edc.eventDrivenAdapter.ParseIn(msg.Value); ok {
+						cl.Log(msg.Partition, msg.Offset, string(msg.Key))
+						out := edc.eventDrivenUsecase.Process(in)
+						outKey, outMsg := edc.eventDrivenAdapter.ParseOut(out)
+						edc.produce(outKey, outMsg)
 					}
 				case errs := <-consMember.Errs:
 					errorkit.ErrorHandled(errs)
@@ -49,10 +67,16 @@ func (edc *EventDrivenConsumer) consume() {
 }
 
 func SubmitRental() {
+	usecase := &usecases.RentalSubmit{
+		DBO:            mysql.NewDBOperation(),
+		CheckoutSchema: kudakiredisearch.CheckoutsSchema.Schema(),
+	}
 	edc := EventDrivenConsumer{
 		eventDrivenAdapter: new(adapters.SubmitRental),
+		eventDrivenUsecase: usecase,
 		eventName:          "RentalSubmissionRequested",
-		topics:             []string{""},
+		inTopics:           []string{events.RentalTopic_name[int32(events.RentalTopic_CHECKOUT_REQUESTED)]},
+		outTopic:           events.RentalTopic_name[int32(events.RentalTopic_CHECKEDOUT)],
 	}
-	edc.consume()
+	edc.handle()
 }
