@@ -1,8 +1,10 @@
 package eventdriven
 
 import (
+	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/ilhammhdd/kudaki-rental-service/externals/kudakiredisearch"
 
@@ -23,7 +25,7 @@ import (
 
 const TOTAL_CONSUMER_MEMBER = 5
 
-type EventDrivenConsumer struct {
+type EventDrivenExternal struct {
 	inTopics           []string
 	eventName          string
 	eventDrivenAdapter adapters.EventDrivenAdapter
@@ -31,11 +33,18 @@ type EventDrivenConsumer struct {
 	outTopic           string
 }
 
-func (edc *EventDrivenConsumer) produce(key string, msg []byte) {
+func (edc *EventDrivenExternal) produce(key string, msg []byte) {
+	prod := kafka.NewProduction()
+	prod.Set(edc.outTopic)
+	start := time.Now()
+	partition, offset, err := prod.SyncProduce(key, msg)
+	duration := time.Since(start)
+	errorkit.ErrorHandled(err)
 
+	log.Printf("produced %s : partition = %d, offset = %d, key = %s, duration = %f seconds", edc.outTopic, partition, offset, key, duration.Seconds())
 }
 
-func (edc *EventDrivenConsumer) handle() {
+func (edc *EventDrivenExternal) handle() {
 	groupID := uuid.New().String()
 	cl := adapters.ConsumerLog{EventName: edc.eventName}
 
@@ -66,17 +75,33 @@ func (edc *EventDrivenConsumer) handle() {
 	}
 }
 
-func SubmitRental() {
-	usecase := &usecases.RentalSubmit{
+func Checkout() {
+	usecase := &usecases.Checkout{
 		DBO:            mysql.NewDBOperation(),
 		CheckoutSchema: kudakiredisearch.CheckoutsSchema.Schema(),
 	}
-	edc := EventDrivenConsumer{
-		eventDrivenAdapter: new(adapters.SubmitRental),
+	edc := EventDrivenExternal{
+		eventDrivenAdapter: new(adapters.Checkout),
 		eventDrivenUsecase: usecase,
-		eventName:          "RentalSubmissionRequested",
+		eventName:          events.RentalTopic_CHECKOUT_REQUESTED.String(),
 		inTopics:           []string{events.RentalTopic_name[int32(events.RentalTopic_CHECKOUT_REQUESTED)]},
 		outTopic:           events.RentalTopic_name[int32(events.RentalTopic_CHECKEDOUT)],
+	}
+	edc.handle()
+}
+
+func AddCartItem() {
+	usecase := &usecases.AddCartItem{
+		CartItemsSchema: kudakiredisearch.CartItemsSchema.Schema(),
+		DBO:             mysql.NewDBOperation(),
+	}
+
+	edc := EventDrivenExternal{
+		eventDrivenAdapter: new(adapters.AddCartItem),
+		eventDrivenUsecase: usecase,
+		eventName:          events.RentalTopic_ADD_CART_ITEM_REQUESTED.String(),
+		inTopics:           []string{events.RentalTopic_ADD_CART_ITEM_REQUESTED.String()},
+		outTopic:           events.RentalTopic_CART_ITEM_ADDED.String(),
 	}
 	edc.handle()
 }

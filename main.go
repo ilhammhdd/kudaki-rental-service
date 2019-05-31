@@ -24,7 +24,8 @@ func init() {
 func main() {
 	wp := safekit.NewWorkerPool()
 
-	wp.Work <- eventdriven.SubmitRental
+	wp.Work <- eventdriven.Checkout
+	wp.Work <- eventdriven.AddCartItem
 
 	wp.PoolWG.Wait()
 }
