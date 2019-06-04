@@ -103,17 +103,18 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e70e92863057536b7b9c93d6c765e331bd83a3a8af8fa54942f8a8a3a74f1825"
+  digest = "1:a6aa42279980b434cf1e94f788fdb0a3185966c6383c17a54d50c439821db1b6"
   name = "github.com/ilhammhdd/kudaki-entities"
   packages = [
     "events",
+    "kudakiredisearch",
     "mountain",
     "rental",
     "store",
     "user",
   ]
   pruneopts = "UT"
-  revision = "cb586be730354b7efe0e53f600f8e1465e8e8a6a"
+  revision = "66d6b27f458740d6a20e28707c32a3575b69a967"
 
 [[projects]]
   digest = "1:259f9b7645983a7a823318d78aa96dec68af8891f706493ac1ec04d819cb977c"
@@ -162,6 +163,9 @@
     "github.com/ilhammhdd/go-toolkit/errorkit",
     "github.com/ilhammhdd/go-toolkit/safekit",
     "github.com/ilhammhdd/kudaki-entities/events",
+    "github.com/ilhammhdd/kudaki-entities/kudakiredisearch",
+    "github.com/ilhammhdd/kudaki-entities/rental",
+    "github.com/ilhammhdd/kudaki-entities/store",
     "gopkg.in/Shopify/sarama.v1",
   ]
   solver-name = "gps-cdcl"

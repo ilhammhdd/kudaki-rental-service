@@ -17,5 +17,5 @@ func TimeNowToDateTime() string {
 }
 
 type EventDrivenUsecase interface {
-	Process(in proto.Message) (out proto.Message)
+	Handle(in proto.Message) (out proto.Message)
 }

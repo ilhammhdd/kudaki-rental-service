@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS carts(
   `id` BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `uuid` VARCHAR(255) UNIQUE,
   `user_uuid` VARCHAR(255),
-  `total_price` INT(20),
+  `total_price` INT(20) UNSIGNED,
+  `total_items` INT(20) UNSIGNED,
   `open` TINYINT(1)
 );
 CREATE TABLE IF NOT EXISTS cart_items(
@@ -15,8 +16,8 @@ CREATE TABLE IF NOT EXISTS cart_items(
   `cart_uuid` VARCHAR(255) UNIQUE,
   `item_uuid` VARCHAR(255),
   `total_item` SMALLINT(5),
-  `total_price` INT(20),
-  `unit_price` INT(20),
+  `total_price` INT(20) UNSIGNED,
+  `unit_price` INT(20) UNSIGNED,
   FOREIGN KEY(cart_uuid) REFERENCES carts(uuid) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS checkouts(
