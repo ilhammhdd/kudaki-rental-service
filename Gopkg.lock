@@ -92,29 +92,52 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:eca2395d007d9b599c86eed12d6a04a6cf60b4bd4816d145d9ff034681fb71ff"
+  digest = "1:32fde96e9508127d52400997053398518301c9009932eede3d084f9560df764a"
   name = "github.com/ilhammhdd/go-toolkit"
   packages = [
     "errorkit",
+    "jwtkit",
     "safekit",
   ]
   pruneopts = "UT"
-  revision = "e8e0b4523d2600181fc0d74d30375bde65ac88ab"
+  revision = "effb6d3db0fbaad3438a04cd1f70c98b3d27f134"
 
 [[projects]]
   branch = "master"
-  digest = "1:a6aa42279980b434cf1e94f788fdb0a3185966c6383c17a54d50c439821db1b6"
+  digest = "1:d2ab7eda8225ae62bb22abea3f78174f4815adeccf518015583a6eb3821720a0"
   name = "github.com/ilhammhdd/kudaki-entities"
   packages = [
     "events",
-    "kudakiredisearch",
     "mountain",
     "rental",
     "store",
     "user",
   ]
   pruneopts = "UT"
-  revision = "66d6b27f458740d6a20e28707c32a3575b69a967"
+  revision = "cf3b3b4ee1f44f8faa39010b85886ca67045c11e"
+
+[[projects]]
+  branch = "master"
+  digest = "1:670472126d2d3cb2db6a0467b3e3b692e006d0737cbdb486e0b609774edfa6bb"
+  name = "github.com/ilhammhdd/kudaki-externals"
+  packages = [
+    "kafka",
+    "mysql",
+    "redisearch",
+  ]
+  pruneopts = "UT"
+  revision = "eefed371939a9d72d4b75aae2b4e521e20de0951"
+
+[[projects]]
+  branch = "master"
+  digest = "1:95f247f6ca95a653805a7b2b124ee3bfa3c182c4b2bd9a5c132a68395223399a"
+  name = "github.com/ilhammhdd/kudaki-store-service"
+  packages = [
+    "adapters",
+    "usecases",
+  ]
+  pruneopts = "UT"
+  revision = "ec08e8959aa34d3f59656ab3551095dce670c25a"
 
 [[projects]]
   digest = "1:259f9b7645983a7a823318d78aa96dec68af8891f706493ac1ec04d819cb977c"
@@ -140,8 +163,8 @@
   name = "google.golang.org/appengine"
   packages = ["cloudsql"]
   pruneopts = "UT"
-  revision = "4c25cacc810c02874000e4f7071286a8e96b2515"
-  version = "v1.6.0"
+  revision = "b2f4a3cf3c67576a2ee09e1fe62656a5086ce880"
+  version = "v1.6.1"
 
 [[projects]]
   digest = "1:6981402aef27693f4b2ec619117abd263fde29f8c1dfac46eef0f35038d37513"
@@ -156,16 +179,21 @@
   analyzer-version = 1
   input-imports = [
     "github.com/RediSearch/redisearch-go/redisearch",
-    "github.com/go-sql-driver/mysql",
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
     "github.com/google/uuid",
     "github.com/ilhammhdd/go-toolkit/errorkit",
+    "github.com/ilhammhdd/go-toolkit/jwtkit",
     "github.com/ilhammhdd/go-toolkit/safekit",
     "github.com/ilhammhdd/kudaki-entities/events",
-    "github.com/ilhammhdd/kudaki-entities/kudakiredisearch",
     "github.com/ilhammhdd/kudaki-entities/rental",
     "github.com/ilhammhdd/kudaki-entities/store",
+    "github.com/ilhammhdd/kudaki-entities/user",
+    "github.com/ilhammhdd/kudaki-externals/kafka",
+    "github.com/ilhammhdd/kudaki-externals/mysql",
+    "github.com/ilhammhdd/kudaki-externals/redisearch",
+    "github.com/ilhammhdd/kudaki-store-service/adapters",
+    "github.com/ilhammhdd/kudaki-store-service/usecases",
     "gopkg.in/Shopify/sarama.v1",
   ]
   solver-name = "gps-cdcl"

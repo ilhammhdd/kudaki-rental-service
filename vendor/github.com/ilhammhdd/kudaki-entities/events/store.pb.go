@@ -23,11 +23,17 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type AddStorefrontItemRequested struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,3,opt,name=item,proto3" json:"item,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Uid                  string   `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Name                 string   `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Amount               int32    `protobuf:"varint,5,opt,name=amount,proto3" json:"amount,omitempty"`
+	Unit                 string   `protobuf:"bytes,6,opt,name=unit,proto3" json:"unit,omitempty"`
+	Price                int32    `protobuf:"varint,7,opt,name=price,proto3" json:"price,omitempty"`
+	Description          string   `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
+	Photo                string   `protobuf:"bytes,9,opt,name=photo,proto3" json:"photo,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,10,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *AddStorefrontItemRequested) Reset()         { *m = AddStorefrontItemRequested{} }
@@ -62,20 +68,65 @@ func (m *AddStorefrontItemRequested) GetUid() string {
 	return ""
 }
 
-func (m *AddStorefrontItemRequested) GetItem() *store.Item {
+func (m *AddStorefrontItemRequested) GetName() string {
 	if m != nil {
-		return m.Item
+		return m.Name
 	}
-	return nil
+	return ""
+}
+
+func (m *AddStorefrontItemRequested) GetAmount() int32 {
+	if m != nil {
+		return m.Amount
+	}
+	return 0
+}
+
+func (m *AddStorefrontItemRequested) GetUnit() string {
+	if m != nil {
+		return m.Unit
+	}
+	return ""
+}
+
+func (m *AddStorefrontItemRequested) GetPrice() int32 {
+	if m != nil {
+		return m.Price
+	}
+	return 0
+}
+
+func (m *AddStorefrontItemRequested) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *AddStorefrontItemRequested) GetPhoto() string {
+	if m != nil {
+		return m.Photo
+	}
+	return ""
+}
+
+func (m *AddStorefrontItemRequested) GetKudakiToken() string {
+	if m != nil {
+		return m.KudakiToken
+	}
+	return ""
 }
 
 type StorefrontItemAdded struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,3,opt,name=item,proto3" json:"item,omitempty"`
-	EventStatus          *Status     `protobuf:"bytes,4,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Uid                        string                      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Storefront                 *store.Storefront           `protobuf:"bytes,2,opt,name=storefront,proto3" json:"storefront,omitempty"`
+	Item                       *store.Item                 `protobuf:"bytes,3,opt,name=item,proto3" json:"item,omitempty"`
+	EventStatus                *Status                     `protobuf:"bytes,4,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
+	AddStorefrontItemRequested *AddStorefrontItemRequested `protobuf:"bytes,5,opt,name=add_storefront_item_requested,json=addStorefrontItemRequested,proto3" json:"add_storefront_item_requested,omitempty"`
+	User                       *user.User                  `protobuf:"bytes,6,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral       struct{}                    `json:"-"`
+	XXX_unrecognized           []byte                      `json:"-"`
+	XXX_sizecache              int32                       `json:"-"`
 }
 
 func (m *StorefrontItemAdded) Reset()         { *m = StorefrontItemAdded{} }
@@ -110,6 +161,13 @@ func (m *StorefrontItemAdded) GetUid() string {
 	return ""
 }
 
+func (m *StorefrontItemAdded) GetStorefront() *store.Storefront {
+	if m != nil {
+		return m.Storefront
+	}
+	return nil
+}
+
 func (m *StorefrontItemAdded) GetItem() *store.Item {
 	if m != nil {
 		return m.Item
@@ -124,12 +182,27 @@ func (m *StorefrontItemAdded) GetEventStatus() *Status {
 	return nil
 }
 
+func (m *StorefrontItemAdded) GetAddStorefrontItemRequested() *AddStorefrontItemRequested {
+	if m != nil {
+		return m.AddStorefrontItemRequested
+	}
+	return nil
+}
+
+func (m *StorefrontItemAdded) GetUser() *user.User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
 type DeleteStorefrontItemRequested struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Uid                  string   `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	ItemUuid             string   `protobuf:"bytes,2,opt,name=item_uuid,json=itemUuid,proto3" json:"item_uuid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,3,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *DeleteStorefrontItemRequested) Reset()         { *m = DeleteStorefrontItemRequested{} }
@@ -164,20 +237,30 @@ func (m *DeleteStorefrontItemRequested) GetUid() string {
 	return ""
 }
 
-func (m *DeleteStorefrontItemRequested) GetItem() *store.Item {
+func (m *DeleteStorefrontItemRequested) GetItemUuid() string {
 	if m != nil {
-		return m.Item
+		return m.ItemUuid
 	}
-	return nil
+	return ""
+}
+
+func (m *DeleteStorefrontItemRequested) GetKudakiToken() string {
+	if m != nil {
+		return m.KudakiToken
+	}
+	return ""
 }
 
 type StorefrontItemDeleted struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
-	EventStatus          *Status     `protobuf:"bytes,3,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Uid                           string                         `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Item                          *store.Item                    `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	EventStatus                   *Status                        `protobuf:"bytes,3,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
+	Storefront                    *store.Storefront              `protobuf:"bytes,4,opt,name=storefront,proto3" json:"storefront,omitempty"`
+	User                          *user.User                     `protobuf:"bytes,5,opt,name=user,proto3" json:"user,omitempty"`
+	DeleteStorefrontItemRequested *DeleteStorefrontItemRequested `protobuf:"bytes,6,opt,name=delete_storefront_item_requested,json=deleteStorefrontItemRequested,proto3" json:"delete_storefront_item_requested,omitempty"`
+	XXX_NoUnkeyedLiteral          struct{}                       `json:"-"`
+	XXX_unrecognized              []byte                         `json:"-"`
+	XXX_sizecache                 int32                          `json:"-"`
 }
 
 func (m *StorefrontItemDeleted) Reset()         { *m = StorefrontItemDeleted{} }
@@ -226,13 +309,40 @@ func (m *StorefrontItemDeleted) GetEventStatus() *Status {
 	return nil
 }
 
+func (m *StorefrontItemDeleted) GetStorefront() *store.Storefront {
+	if m != nil {
+		return m.Storefront
+	}
+	return nil
+}
+
+func (m *StorefrontItemDeleted) GetUser() *user.User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *StorefrontItemDeleted) GetDeleteStorefrontItemRequested() *DeleteStorefrontItemRequested {
+	if m != nil {
+		return m.DeleteStorefrontItemRequested
+	}
+	return nil
+}
+
 type UpdateStorefrontItemRequested struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
-	User                 *user.User  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Uid                  string   `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,2,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	Uuid                 string   `protobuf:"bytes,3,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Name                 string   `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Amount               int32    `protobuf:"varint,5,opt,name=amount,proto3" json:"amount,omitempty"`
+	Unit                 string   `protobuf:"bytes,6,opt,name=unit,proto3" json:"unit,omitempty"`
+	Price                int32    `protobuf:"varint,7,opt,name=price,proto3" json:"price,omitempty"`
+	Description          string   `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
+	Photo                string   `protobuf:"bytes,9,opt,name=photo,proto3" json:"photo,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *UpdateStorefrontItemRequested) Reset()         { *m = UpdateStorefrontItemRequested{} }
@@ -267,28 +377,72 @@ func (m *UpdateStorefrontItemRequested) GetUid() string {
 	return ""
 }
 
-func (m *UpdateStorefrontItemRequested) GetItem() *store.Item {
+func (m *UpdateStorefrontItemRequested) GetKudakiToken() string {
 	if m != nil {
-		return m.Item
+		return m.KudakiToken
 	}
-	return nil
+	return ""
 }
 
-func (m *UpdateStorefrontItemRequested) GetUser() *user.User {
+func (m *UpdateStorefrontItemRequested) GetUuid() string {
 	if m != nil {
-		return m.User
+		return m.Uuid
 	}
-	return nil
+	return ""
+}
+
+func (m *UpdateStorefrontItemRequested) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateStorefrontItemRequested) GetAmount() int32 {
+	if m != nil {
+		return m.Amount
+	}
+	return 0
+}
+
+func (m *UpdateStorefrontItemRequested) GetUnit() string {
+	if m != nil {
+		return m.Unit
+	}
+	return ""
+}
+
+func (m *UpdateStorefrontItemRequested) GetPrice() int32 {
+	if m != nil {
+		return m.Price
+	}
+	return 0
+}
+
+func (m *UpdateStorefrontItemRequested) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *UpdateStorefrontItemRequested) GetPhoto() string {
+	if m != nil {
+		return m.Photo
+	}
+	return ""
 }
 
 type StorefrontItemUpdated struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
-	User                 *user.User  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	EventStatus          *Status     `protobuf:"bytes,4,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Uid                           string                         `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Item                          *store.Item                    `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	Storefront                    *store.Storefront              `protobuf:"bytes,3,opt,name=storefront,proto3" json:"storefront,omitempty"`
+	EventStatus                   *Status                        `protobuf:"bytes,4,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
+	User                          *user.User                     `protobuf:"bytes,5,opt,name=user,proto3" json:"user,omitempty"`
+	UpdateStorefrontItemRequested *UpdateStorefrontItemRequested `protobuf:"bytes,6,opt,name=update_storefront_item_requested,json=updateStorefrontItemRequested,proto3" json:"update_storefront_item_requested,omitempty"`
+	XXX_NoUnkeyedLiteral          struct{}                       `json:"-"`
+	XXX_unrecognized              []byte                         `json:"-"`
+	XXX_sizecache                 int32                          `json:"-"`
 }
 
 func (m *StorefrontItemUpdated) Reset()         { *m = StorefrontItemUpdated{} }
@@ -330,9 +484,9 @@ func (m *StorefrontItemUpdated) GetItem() *store.Item {
 	return nil
 }
 
-func (m *StorefrontItemUpdated) GetUser() *user.User {
+func (m *StorefrontItemUpdated) GetStorefront() *store.Storefront {
 	if m != nil {
-		return m.User
+		return m.Storefront
 	}
 	return nil
 }
@@ -344,21 +498,152 @@ func (m *StorefrontItemUpdated) GetEventStatus() *Status {
 	return nil
 }
 
+func (m *StorefrontItemUpdated) GetUser() *user.User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *StorefrontItemUpdated) GetUpdateStorefrontItemRequested() *UpdateStorefrontItemRequested {
+	if m != nil {
+		return m.UpdateStorefrontItemRequested
+	}
+	return nil
+}
+
+type RetrieveUsersStorefrontItemsRequested struct {
+	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,2,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	Offset               int32    `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit                int32    `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RetrieveUsersStorefrontItemsRequested) Reset()         { *m = RetrieveUsersStorefrontItemsRequested{} }
+func (m *RetrieveUsersStorefrontItemsRequested) String() string { return proto.CompactTextString(m) }
+func (*RetrieveUsersStorefrontItemsRequested) ProtoMessage()    {}
+func (*RetrieveUsersStorefrontItemsRequested) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4f52bba9433e5948, []int{6}
+}
+
+func (m *RetrieveUsersStorefrontItemsRequested) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RetrieveUsersStorefrontItemsRequested.Unmarshal(m, b)
+}
+func (m *RetrieveUsersStorefrontItemsRequested) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RetrieveUsersStorefrontItemsRequested.Marshal(b, m, deterministic)
+}
+func (m *RetrieveUsersStorefrontItemsRequested) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RetrieveUsersStorefrontItemsRequested.Merge(m, src)
+}
+func (m *RetrieveUsersStorefrontItemsRequested) XXX_Size() int {
+	return xxx_messageInfo_RetrieveUsersStorefrontItemsRequested.Size(m)
+}
+func (m *RetrieveUsersStorefrontItemsRequested) XXX_DiscardUnknown() {
+	xxx_messageInfo_RetrieveUsersStorefrontItemsRequested.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RetrieveUsersStorefrontItemsRequested proto.InternalMessageInfo
+
+func (m *RetrieveUsersStorefrontItemsRequested) GetUuid() string {
+	if m != nil {
+		return m.Uuid
+	}
+	return ""
+}
+
+func (m *RetrieveUsersStorefrontItemsRequested) GetKudakiToken() string {
+	if m != nil {
+		return m.KudakiToken
+	}
+	return ""
+}
+
+func (m *RetrieveUsersStorefrontItemsRequested) GetOffset() int32 {
+	if m != nil {
+		return m.Offset
+	}
+	return 0
+}
+
+func (m *RetrieveUsersStorefrontItemsRequested) GetLimit() int32 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+type RetrieveUsersStorefrontItemRequested struct {
+	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,2,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	ItemUuid             string   `protobuf:"bytes,3,opt,name=item_uuid,json=itemUuid,proto3" json:"item_uuid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RetrieveUsersStorefrontItemRequested) Reset()         { *m = RetrieveUsersStorefrontItemRequested{} }
+func (m *RetrieveUsersStorefrontItemRequested) String() string { return proto.CompactTextString(m) }
+func (*RetrieveUsersStorefrontItemRequested) ProtoMessage()    {}
+func (*RetrieveUsersStorefrontItemRequested) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4f52bba9433e5948, []int{7}
+}
+
+func (m *RetrieveUsersStorefrontItemRequested) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RetrieveUsersStorefrontItemRequested.Unmarshal(m, b)
+}
+func (m *RetrieveUsersStorefrontItemRequested) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RetrieveUsersStorefrontItemRequested.Marshal(b, m, deterministic)
+}
+func (m *RetrieveUsersStorefrontItemRequested) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RetrieveUsersStorefrontItemRequested.Merge(m, src)
+}
+func (m *RetrieveUsersStorefrontItemRequested) XXX_Size() int {
+	return xxx_messageInfo_RetrieveUsersStorefrontItemRequested.Size(m)
+}
+func (m *RetrieveUsersStorefrontItemRequested) XXX_DiscardUnknown() {
+	xxx_messageInfo_RetrieveUsersStorefrontItemRequested.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RetrieveUsersStorefrontItemRequested proto.InternalMessageInfo
+
+func (m *RetrieveUsersStorefrontItemRequested) GetUuid() string {
+	if m != nil {
+		return m.Uuid
+	}
+	return ""
+}
+
+func (m *RetrieveUsersStorefrontItemRequested) GetKudakiToken() string {
+	if m != nil {
+		return m.KudakiToken
+	}
+	return ""
+}
+
+func (m *RetrieveUsersStorefrontItemRequested) GetItemUuid() string {
+	if m != nil {
+		return m.ItemUuid
+	}
+	return ""
+}
+
 type RetrieveStorefrontItemsRequested struct {
-	Uid                  string     `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	User                 *user.User `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	From                 int32      `protobuf:"varint,3,opt,name=from,proto3" json:"from,omitempty"`
-	Limit                int32      `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,2,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	StorefrontUuid       string   `protobuf:"bytes,3,opt,name=storefront_uuid,json=storefrontUuid,proto3" json:"storefront_uuid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *RetrieveStorefrontItemsRequested) Reset()         { *m = RetrieveStorefrontItemsRequested{} }
 func (m *RetrieveStorefrontItemsRequested) String() string { return proto.CompactTextString(m) }
 func (*RetrieveStorefrontItemsRequested) ProtoMessage()    {}
 func (*RetrieveStorefrontItemsRequested) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{6}
+	return fileDescriptor_4f52bba9433e5948, []int{8}
 }
 
 func (m *RetrieveStorefrontItemsRequested) XXX_Unmarshal(b []byte) error {
@@ -379,117 +664,32 @@ func (m *RetrieveStorefrontItemsRequested) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RetrieveStorefrontItemsRequested proto.InternalMessageInfo
 
-func (m *RetrieveStorefrontItemsRequested) GetUid() string {
+func (m *RetrieveStorefrontItemsRequested) GetUuid() string {
 	if m != nil {
-		return m.Uid
+		return m.Uuid
 	}
 	return ""
 }
 
-func (m *RetrieveStorefrontItemsRequested) GetUser() *user.User {
+func (m *RetrieveStorefrontItemsRequested) GetKudakiToken() string {
 	if m != nil {
-		return m.User
-	}
-	return nil
-}
-
-func (m *RetrieveStorefrontItemsRequested) GetFrom() int32 {
-	if m != nil {
-		return m.From
-	}
-	return 0
-}
-
-func (m *RetrieveStorefrontItemsRequested) GetLimit() int32 {
-	if m != nil {
-		return m.Limit
-	}
-	return 0
-}
-
-type StorefrontItemsRetrieved struct {
-	Uid                  string       `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Items                *store.Items `protobuf:"bytes,2,opt,name=items,proto3" json:"items,omitempty"`
-	EventStatus          *Status      `protobuf:"bytes,3,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	First                int32        `protobuf:"varint,4,opt,name=first,proto3" json:"first,omitempty"`
-	Limit                int32        `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
-	Last                 int32        `protobuf:"varint,6,opt,name=last,proto3" json:"last,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
-}
-
-func (m *StorefrontItemsRetrieved) Reset()         { *m = StorefrontItemsRetrieved{} }
-func (m *StorefrontItemsRetrieved) String() string { return proto.CompactTextString(m) }
-func (*StorefrontItemsRetrieved) ProtoMessage()    {}
-func (*StorefrontItemsRetrieved) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{7}
-}
-
-func (m *StorefrontItemsRetrieved) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_StorefrontItemsRetrieved.Unmarshal(m, b)
-}
-func (m *StorefrontItemsRetrieved) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_StorefrontItemsRetrieved.Marshal(b, m, deterministic)
-}
-func (m *StorefrontItemsRetrieved) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StorefrontItemsRetrieved.Merge(m, src)
-}
-func (m *StorefrontItemsRetrieved) XXX_Size() int {
-	return xxx_messageInfo_StorefrontItemsRetrieved.Size(m)
-}
-func (m *StorefrontItemsRetrieved) XXX_DiscardUnknown() {
-	xxx_messageInfo_StorefrontItemsRetrieved.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StorefrontItemsRetrieved proto.InternalMessageInfo
-
-func (m *StorefrontItemsRetrieved) GetUid() string {
-	if m != nil {
-		return m.Uid
+		return m.KudakiToken
 	}
 	return ""
 }
 
-func (m *StorefrontItemsRetrieved) GetItems() *store.Items {
+func (m *RetrieveStorefrontItemsRequested) GetStorefrontUuid() string {
 	if m != nil {
-		return m.Items
+		return m.StorefrontUuid
 	}
-	return nil
-}
-
-func (m *StorefrontItemsRetrieved) GetEventStatus() *Status {
-	if m != nil {
-		return m.EventStatus
-	}
-	return nil
-}
-
-func (m *StorefrontItemsRetrieved) GetFirst() int32 {
-	if m != nil {
-		return m.First
-	}
-	return 0
-}
-
-func (m *StorefrontItemsRetrieved) GetLimit() int32 {
-	if m != nil {
-		return m.Limit
-	}
-	return 0
-}
-
-func (m *StorefrontItemsRetrieved) GetLast() int32 {
-	if m != nil {
-		return m.Last
-	}
-	return 0
+	return ""
 }
 
 type RetrieveItemsRequested struct {
-	Uid                  string   `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	From                 int32    `protobuf:"varint,2,opt,name=from,proto3" json:"from,omitempty"`
+	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Offset               int32    `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	Limit                int32    `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,4,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -499,7 +699,7 @@ func (m *RetrieveItemsRequested) Reset()         { *m = RetrieveItemsRequested{}
 func (m *RetrieveItemsRequested) String() string { return proto.CompactTextString(m) }
 func (*RetrieveItemsRequested) ProtoMessage()    {}
 func (*RetrieveItemsRequested) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{8}
+	return fileDescriptor_4f52bba9433e5948, []int{9}
 }
 
 func (m *RetrieveItemsRequested) XXX_Unmarshal(b []byte) error {
@@ -520,16 +720,16 @@ func (m *RetrieveItemsRequested) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RetrieveItemsRequested proto.InternalMessageInfo
 
-func (m *RetrieveItemsRequested) GetUid() string {
+func (m *RetrieveItemsRequested) GetUuid() string {
 	if m != nil {
-		return m.Uid
+		return m.Uuid
 	}
 	return ""
 }
 
-func (m *RetrieveItemsRequested) GetFrom() int32 {
+func (m *RetrieveItemsRequested) GetOffset() int32 {
 	if m != nil {
-		return m.From
+		return m.Offset
 	}
 	return 0
 }
@@ -541,92 +741,20 @@ func (m *RetrieveItemsRequested) GetLimit() int32 {
 	return 0
 }
 
-type ItemsRetrieved struct {
-	Uid                  string       `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Items                *store.Items `protobuf:"bytes,2,opt,name=items,proto3" json:"items,omitempty"`
-	EventStatus          *Status      `protobuf:"bytes,3,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	First                int32        `protobuf:"varint,4,opt,name=first,proto3" json:"first,omitempty"`
-	Limit                int32        `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
-	Last                 int32        `protobuf:"varint,6,opt,name=last,proto3" json:"last,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
-}
-
-func (m *ItemsRetrieved) Reset()         { *m = ItemsRetrieved{} }
-func (m *ItemsRetrieved) String() string { return proto.CompactTextString(m) }
-func (*ItemsRetrieved) ProtoMessage()    {}
-func (*ItemsRetrieved) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{9}
-}
-
-func (m *ItemsRetrieved) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ItemsRetrieved.Unmarshal(m, b)
-}
-func (m *ItemsRetrieved) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ItemsRetrieved.Marshal(b, m, deterministic)
-}
-func (m *ItemsRetrieved) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ItemsRetrieved.Merge(m, src)
-}
-func (m *ItemsRetrieved) XXX_Size() int {
-	return xxx_messageInfo_ItemsRetrieved.Size(m)
-}
-func (m *ItemsRetrieved) XXX_DiscardUnknown() {
-	xxx_messageInfo_ItemsRetrieved.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ItemsRetrieved proto.InternalMessageInfo
-
-func (m *ItemsRetrieved) GetUid() string {
+func (m *RetrieveItemsRequested) GetKudakiToken() string {
 	if m != nil {
-		return m.Uid
+		return m.KudakiToken
 	}
 	return ""
 }
 
-func (m *ItemsRetrieved) GetItems() *store.Items {
-	if m != nil {
-		return m.Items
-	}
-	return nil
-}
-
-func (m *ItemsRetrieved) GetEventStatus() *Status {
-	if m != nil {
-		return m.EventStatus
-	}
-	return nil
-}
-
-func (m *ItemsRetrieved) GetFirst() int32 {
-	if m != nil {
-		return m.First
-	}
-	return 0
-}
-
-func (m *ItemsRetrieved) GetLimit() int32 {
-	if m != nil {
-		return m.Limit
-	}
-	return 0
-}
-
-func (m *ItemsRetrieved) GetLast() int32 {
-	if m != nil {
-		return m.Last
-	}
-	return 0
-}
-
 type RetrieveItemRequested struct {
-	Uid                  string     `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	ItemUuid             string     `protobuf:"bytes,2,opt,name=item_uuid,json=itemUuid,proto3" json:"item_uuid,omitempty"`
-	User                 *user.User `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	ItemUuid             string   `protobuf:"bytes,2,opt,name=item_uuid,json=itemUuid,proto3" json:"item_uuid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,3,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *RetrieveItemRequested) Reset()         { *m = RetrieveItemRequested{} }
@@ -654,9 +782,9 @@ func (m *RetrieveItemRequested) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RetrieveItemRequested proto.InternalMessageInfo
 
-func (m *RetrieveItemRequested) GetUid() string {
+func (m *RetrieveItemRequested) GetUuid() string {
 	if m != nil {
-		return m.Uid
+		return m.Uuid
 	}
 	return ""
 }
@@ -668,92 +796,34 @@ func (m *RetrieveItemRequested) GetItemUuid() string {
 	return ""
 }
 
-func (m *RetrieveItemRequested) GetUser() *user.User {
+func (m *RetrieveItemRequested) GetKudakiToken() string {
 	if m != nil {
-		return m.User
-	}
-	return nil
-}
-
-type ItemRetrieved struct {
-	Uid                  string      `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Item                 *store.Item `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
-	User                 *user.User  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	EventStatus          *Status     `protobuf:"bytes,4,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
-}
-
-func (m *ItemRetrieved) Reset()         { *m = ItemRetrieved{} }
-func (m *ItemRetrieved) String() string { return proto.CompactTextString(m) }
-func (*ItemRetrieved) ProtoMessage()    {}
-func (*ItemRetrieved) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{11}
-}
-
-func (m *ItemRetrieved) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ItemRetrieved.Unmarshal(m, b)
-}
-func (m *ItemRetrieved) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ItemRetrieved.Marshal(b, m, deterministic)
-}
-func (m *ItemRetrieved) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ItemRetrieved.Merge(m, src)
-}
-func (m *ItemRetrieved) XXX_Size() int {
-	return xxx_messageInfo_ItemRetrieved.Size(m)
-}
-func (m *ItemRetrieved) XXX_DiscardUnknown() {
-	xxx_messageInfo_ItemRetrieved.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ItemRetrieved proto.InternalMessageInfo
-
-func (m *ItemRetrieved) GetUid() string {
-	if m != nil {
-		return m.Uid
+		return m.KudakiToken
 	}
 	return ""
 }
 
-func (m *ItemRetrieved) GetItem() *store.Item {
-	if m != nil {
-		return m.Item
-	}
-	return nil
-}
-
-func (m *ItemRetrieved) GetUser() *user.User {
-	if m != nil {
-		return m.User
-	}
-	return nil
-}
-
-func (m *ItemRetrieved) GetEventStatus() *Status {
-	if m != nil {
-		return m.EventStatus
-	}
-	return nil
-}
-
 type SearchItemsRequested struct {
-	Uid                  string     `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	User                 *user.User `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	Keyword              string     `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	From                 uint64     `protobuf:"varint,4,opt,name=from,proto3" json:"from,omitempty"`
-	Limit                int32      `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	KudakiToken          string   `protobuf:"bytes,2,opt,name=kudaki_token,json=kudakiToken,proto3" json:"kudaki_token,omitempty"`
+	Keyword              string   `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Offset               int32    `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit                int32    `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+	Amount               int32    `protobuf:"varint,6,opt,name=amount,proto3" json:"amount,omitempty"`
+	PriceFrom            int32    `protobuf:"varint,7,opt,name=price_from,json=priceFrom,proto3" json:"price_from,omitempty"`
+	PriceTo              int32    `protobuf:"varint,8,opt,name=price_to,json=priceTo,proto3" json:"price_to,omitempty"`
+	RatingFrom           float32  `protobuf:"fixed32,9,opt,name=rating_from,json=ratingFrom,proto3" json:"rating_from,omitempty"`
+	RatingTo             float32  `protobuf:"fixed32,10,opt,name=rating_to,json=ratingTo,proto3" json:"rating_to,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *SearchItemsRequested) Reset()         { *m = SearchItemsRequested{} }
 func (m *SearchItemsRequested) String() string { return proto.CompactTextString(m) }
 func (*SearchItemsRequested) ProtoMessage()    {}
 func (*SearchItemsRequested) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{12}
+	return fileDescriptor_4f52bba9433e5948, []int{11}
 }
 
 func (m *SearchItemsRequested) XXX_Unmarshal(b []byte) error {
@@ -774,18 +844,18 @@ func (m *SearchItemsRequested) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SearchItemsRequested proto.InternalMessageInfo
 
-func (m *SearchItemsRequested) GetUid() string {
+func (m *SearchItemsRequested) GetUuid() string {
 	if m != nil {
-		return m.Uid
+		return m.Uuid
 	}
 	return ""
 }
 
-func (m *SearchItemsRequested) GetUser() *user.User {
+func (m *SearchItemsRequested) GetKudakiToken() string {
 	if m != nil {
-		return m.User
+		return m.KudakiToken
 	}
-	return nil
+	return ""
 }
 
 func (m *SearchItemsRequested) GetKeyword() string {
@@ -795,9 +865,9 @@ func (m *SearchItemsRequested) GetKeyword() string {
 	return ""
 }
 
-func (m *SearchItemsRequested) GetFrom() uint64 {
+func (m *SearchItemsRequested) GetOffset() int32 {
 	if m != nil {
-		return m.From
+		return m.Offset
 	}
 	return 0
 }
@@ -809,97 +879,37 @@ func (m *SearchItemsRequested) GetLimit() int32 {
 	return 0
 }
 
-type ItemsSearched struct {
-	Uid                  string       `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	User                 *user.User   `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	Keyword              string       `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	Items                *store.Items `protobuf:"bytes,4,opt,name=items,proto3" json:"items,omitempty"`
-	EventStatus          *Status      `protobuf:"bytes,5,opt,name=event_status,json=eventStatus,proto3" json:"event_status,omitempty"`
-	First                uint64       `protobuf:"varint,6,opt,name=first,proto3" json:"first,omitempty"`
-	Limit                int32        `protobuf:"varint,8,opt,name=limit,proto3" json:"limit,omitempty"`
-	Last                 uint64       `protobuf:"varint,7,opt,name=last,proto3" json:"last,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
-}
-
-func (m *ItemsSearched) Reset()         { *m = ItemsSearched{} }
-func (m *ItemsSearched) String() string { return proto.CompactTextString(m) }
-func (*ItemsSearched) ProtoMessage()    {}
-func (*ItemsSearched) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f52bba9433e5948, []int{13}
-}
-
-func (m *ItemsSearched) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ItemsSearched.Unmarshal(m, b)
-}
-func (m *ItemsSearched) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ItemsSearched.Marshal(b, m, deterministic)
-}
-func (m *ItemsSearched) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ItemsSearched.Merge(m, src)
-}
-func (m *ItemsSearched) XXX_Size() int {
-	return xxx_messageInfo_ItemsSearched.Size(m)
-}
-func (m *ItemsSearched) XXX_DiscardUnknown() {
-	xxx_messageInfo_ItemsSearched.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ItemsSearched proto.InternalMessageInfo
-
-func (m *ItemsSearched) GetUid() string {
+func (m *SearchItemsRequested) GetAmount() int32 {
 	if m != nil {
-		return m.Uid
-	}
-	return ""
-}
-
-func (m *ItemsSearched) GetUser() *user.User {
-	if m != nil {
-		return m.User
-	}
-	return nil
-}
-
-func (m *ItemsSearched) GetKeyword() string {
-	if m != nil {
-		return m.Keyword
-	}
-	return ""
-}
-
-func (m *ItemsSearched) GetItems() *store.Items {
-	if m != nil {
-		return m.Items
-	}
-	return nil
-}
-
-func (m *ItemsSearched) GetEventStatus() *Status {
-	if m != nil {
-		return m.EventStatus
-	}
-	return nil
-}
-
-func (m *ItemsSearched) GetFirst() uint64 {
-	if m != nil {
-		return m.First
+		return m.Amount
 	}
 	return 0
 }
 
-func (m *ItemsSearched) GetLimit() int32 {
+func (m *SearchItemsRequested) GetPriceFrom() int32 {
 	if m != nil {
-		return m.Limit
+		return m.PriceFrom
 	}
 	return 0
 }
 
-func (m *ItemsSearched) GetLast() uint64 {
+func (m *SearchItemsRequested) GetPriceTo() int32 {
 	if m != nil {
-		return m.Last
+		return m.PriceTo
+	}
+	return 0
+}
+
+func (m *SearchItemsRequested) GetRatingFrom() float32 {
+	if m != nil {
+		return m.RatingFrom
+	}
+	return 0
+}
+
+func (m *SearchItemsRequested) GetRatingTo() float32 {
+	if m != nil {
+		return m.RatingTo
 	}
 	return 0
 }
@@ -911,52 +921,64 @@ func init() {
 	proto.RegisterType((*StorefrontItemDeleted)(nil), "event.StorefrontItemDeleted")
 	proto.RegisterType((*UpdateStorefrontItemRequested)(nil), "event.UpdateStorefrontItemRequested")
 	proto.RegisterType((*StorefrontItemUpdated)(nil), "event.StorefrontItemUpdated")
+	proto.RegisterType((*RetrieveUsersStorefrontItemsRequested)(nil), "event.RetrieveUsersStorefrontItemsRequested")
+	proto.RegisterType((*RetrieveUsersStorefrontItemRequested)(nil), "event.RetrieveUsersStorefrontItemRequested")
 	proto.RegisterType((*RetrieveStorefrontItemsRequested)(nil), "event.RetrieveStorefrontItemsRequested")
-	proto.RegisterType((*StorefrontItemsRetrieved)(nil), "event.StorefrontItemsRetrieved")
 	proto.RegisterType((*RetrieveItemsRequested)(nil), "event.RetrieveItemsRequested")
-	proto.RegisterType((*ItemsRetrieved)(nil), "event.ItemsRetrieved")
 	proto.RegisterType((*RetrieveItemRequested)(nil), "event.RetrieveItemRequested")
-	proto.RegisterType((*ItemRetrieved)(nil), "event.ItemRetrieved")
 	proto.RegisterType((*SearchItemsRequested)(nil), "event.SearchItemsRequested")
-	proto.RegisterType((*ItemsSearched)(nil), "event.ItemsSearched")
 }
 
 func init() { proto.RegisterFile("events/store.proto", fileDescriptor_4f52bba9433e5948) }
 
 var fileDescriptor_4f52bba9433e5948 = []byte{
-	// 539 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x96, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x86, 0xb5, 0x89, 0x9d, 0x36, 0x53, 0x0a, 0x95, 0x93, 0x20, 0x2b, 0xa8, 0x52, 0xe4, 0x0b,
-	0x91, 0xaa, 0xda, 0x08, 0x9e, 0xa0, 0x88, 0x0b, 0x57, 0x87, 0x48, 0x08, 0x0e, 0x95, 0xdb, 0x9d,
-	0x90, 0x55, 0xe2, 0xb8, 0xec, 0xae, 0x8b, 0x38, 0x17, 0xc4, 0x13, 0xf0, 0x0a, 0x1c, 0x79, 0x07,
-	0xce, 0xbc, 0x14, 0xda, 0xd9, 0x38, 0x75, 0x93, 0x50, 0xd3, 0x96, 0x22, 0x7a, 0xa9, 0x76, 0xa6,
-	0xb3, 0xbb, 0xdf, 0xff, 0xe7, 0x5f, 0xc9, 0xe0, 0xe1, 0x29, 0xce, 0xb4, 0x8a, 0x94, 0xce, 0x24,
-	0x86, 0x27, 0x32, 0xd3, 0x99, 0xe7, 0x52, 0xaf, 0xbb, 0x43, 0xbd, 0x48, 0x68, 0x4c, 0xed, 0x3f,
-	0xba, 0xad, 0xc5, 0x70, 0xa2, 0x73, 0x35, 0x6f, 0x3e, 0xc8, 0x15, 0xca, 0xc8, 0xfc, 0xb1, 0x8d,
-	0xe0, 0x35, 0x74, 0x0f, 0x38, 0x1f, 0x98, 0xcd, 0x23, 0x99, 0xcd, 0xf4, 0x4b, 0x8d, 0x69, 0x8c,
-	0xef, 0x73, 0x54, 0x1a, 0xb9, 0xb7, 0x03, 0xf5, 0x5c, 0x70, 0x9f, 0xf5, 0x58, 0xbf, 0x19, 0x9b,
-	0xa5, 0xd7, 0x07, 0xc7, 0xdc, 0xe1, 0xd7, 0x7b, 0xac, 0xbf, 0xf5, 0xb4, 0x1d, 0xe2, 0x4c, 0x0b,
-	0x2d, 0x50, 0x85, 0x96, 0x89, 0xb6, 0xd3, 0x44, 0x70, 0xc6, 0xa0, 0x75, 0xf1, 0xdc, 0x03, 0xce,
-	0x6f, 0x76, 0xa6, 0xf7, 0x04, 0xee, 0x91, 0xaa, 0x43, 0x2b, 0xca, 0x77, 0x68, 0xc7, 0x76, 0x48,
-	0xcd, 0x70, 0x40, 0xcd, 0x78, 0x8b, 0x2a, 0x5b, 0x04, 0x6f, 0x61, 0xf7, 0x05, 0x4e, 0x51, 0xe3,
-	0xd5, 0x25, 0xd6, 0x2a, 0x25, 0x7e, 0x66, 0xd0, 0xb9, 0x78, 0xae, 0xbd, 0xeb, 0x46, 0xa7, 0xae,
-	0x88, 0xac, 0x57, 0x8a, 0xfc, 0xc4, 0x60, 0x77, 0x78, 0xc2, 0x93, 0x5b, 0x51, 0xe9, 0x3d, 0x06,
-	0xc7, 0x04, 0x66, 0xce, 0xd1, 0x3a, 0x9f, 0xa4, 0x18, 0x0d, 0x15, 0xca, 0x98, 0x06, 0x82, 0xef,
-	0x2b, 0x76, 0x58, 0xa8, 0x7f, 0x73, 0xfd, 0x35, 0xc2, 0xf1, 0x85, 0x41, 0x2f, 0x46, 0x2d, 0x05,
-	0x9e, 0x2e, 0x39, 0xa7, 0x2e, 0xb3, 0xae, 0x20, 0xaa, 0x55, 0x11, 0x79, 0xe0, 0x8c, 0x64, 0x66,
-	0x83, 0xed, 0xc6, 0xb4, 0xf6, 0xda, 0xe0, 0x4e, 0x45, 0x2a, 0x34, 0xe1, 0xb9, 0xb1, 0x2d, 0x82,
-	0x9f, 0x0c, 0xfc, 0x15, 0x02, 0x0b, 0xb6, 0x8e, 0x60, 0x0f, 0x5c, 0xe3, 0x8d, 0x9a, 0x23, 0x74,
-	0xd6, 0xd9, 0xa7, 0x62, 0x3b, 0x73, 0xf5, 0x3c, 0x19, 0xc6, 0x91, 0x90, 0x6a, 0xc1, 0x48, 0xc5,
-	0x39, 0xb9, 0x5b, 0x22, 0x37, 0x1a, 0xa7, 0x89, 0xd2, 0x7e, 0xc3, 0x6a, 0x34, 0xeb, 0xe0, 0x15,
-	0x3c, 0x2c, 0xe8, 0x2b, 0xcd, 0x2c, 0x3c, 0xaa, 0xad, 0xf3, 0xa8, 0x5e, 0xf6, 0xe8, 0x07, 0x83,
-	0xfb, 0x77, 0xdd, 0x99, 0x0c, 0x3a, 0x65, 0x67, 0x2e, 0x33, 0xe6, 0x11, 0x34, 0x0d, 0xe5, 0x61,
-	0x6e, 0xfa, 0x35, 0xea, 0x6f, 0x9a, 0xc6, 0xb0, 0x1c, 0xc1, 0xca, 0x37, 0xf9, 0x8d, 0xc1, 0xb6,
-	0xbd, 0xe9, 0xf7, 0x9e, 0xfd, 0x17, 0x6f, 0xf1, 0x2b, 0x83, 0xf6, 0x00, 0x13, 0x79, 0x3c, 0xfe,
-	0x7b, 0xef, 0xcf, 0x87, 0x8d, 0x09, 0x7e, 0xfc, 0x90, 0x49, 0x4e, 0xc4, 0xcd, 0xb8, 0x28, 0x17,
-	0xa9, 0x33, 0x5c, 0xce, 0x72, 0xea, 0xca, 0xbf, 0x62, 0x70, 0x56, 0xb3, 0x06, 0x2a, 0x0b, 0x77,
-	0x5b, 0x40, 0x8b, 0xdc, 0x3a, 0xd7, 0xc8, 0xad, 0xfb, 0xe7, 0xb9, 0x6d, 0x90, 0xe0, 0xe5, 0xdc,
-	0x6e, 0xae, 0xcb, 0xed, 0x86, 0xf5, 0xc6, 0xac, 0x9f, 0xef, 0xbf, 0xd9, 0x7b, 0x27, 0xf4, 0x38,
-	0x3f, 0x0a, 0x8f, 0xb3, 0x34, 0x12, 0xd3, 0x71, 0x92, 0xa6, 0x63, 0xce, 0xa3, 0x49, 0xce, 0x93,
-	0x89, 0xd8, 0x2f, 0x60, 0x23, 0xfb, 0xcd, 0x71, 0xd4, 0xa0, 0x8f, 0x8b, 0x67, 0xbf, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0x53, 0xd8, 0x2f, 0x8a, 0xb1, 0x08, 0x00, 0x00,
+	// 765 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0x41, 0x4f, 0xdb, 0x48,
+	0x14, 0x96, 0xed, 0x38, 0x24, 0x2f, 0xec, 0x82, 0x06, 0x88, 0xbc, 0x41, 0xd1, 0x86, 0x88, 0x15,
+	0x91, 0x56, 0x24, 0xab, 0xec, 0x6d, 0x6f, 0xac, 0xaa, 0x4a, 0xbd, 0x0e, 0x70, 0xe9, 0x25, 0x32,
+	0x99, 0x09, 0x19, 0x05, 0x7b, 0x82, 0x3d, 0xa6, 0x6a, 0xa5, 0x5e, 0x7a, 0xee, 0xdf, 0xe8, 0xdf,
+	0xe9, 0xbd, 0xa7, 0xfe, 0x8b, 0x9e, 0xab, 0x79, 0x63, 0x63, 0x9b, 0x84, 0x90, 0x08, 0x0e, 0xbd,
+	0x44, 0x7e, 0xdf, 0xbc, 0xe7, 0x79, 0xf3, 0x7d, 0x9f, 0x5f, 0x06, 0x08, 0xbf, 0xe3, 0xa1, 0x8a,
+	0x07, 0xb1, 0x92, 0x11, 0xef, 0xcf, 0x23, 0xa9, 0x24, 0x71, 0x11, 0x6b, 0xed, 0x22, 0x36, 0x10,
+	0x8a, 0x07, 0x66, 0xa1, 0xb5, 0x77, 0x9f, 0xec, 0xab, 0x24, 0x4e, 0xc1, 0x9d, 0x24, 0xe6, 0xd1,
+	0x40, 0xff, 0xa4, 0x40, 0xd3, 0xd4, 0xe1, 0xef, 0x24, 0x92, 0xa1, 0x32, 0x78, 0xf7, 0xbb, 0x05,
+	0xad, 0x33, 0xc6, 0xce, 0xef, 0xf1, 0x37, 0x8a, 0x07, 0x94, 0xdf, 0x26, 0x3c, 0x56, 0x9c, 0x91,
+	0x5d, 0x70, 0x12, 0xc1, 0x3c, 0xab, 0x63, 0xf5, 0xea, 0x54, 0x3f, 0x12, 0x02, 0x95, 0xd0, 0x0f,
+	0xb8, 0x57, 0x41, 0x08, 0x9f, 0x49, 0x13, 0xaa, 0x7e, 0x20, 0x93, 0x50, 0x79, 0x6e, 0xc7, 0xea,
+	0xb9, 0x34, 0x8d, 0x74, 0x6e, 0x12, 0x0a, 0xe5, 0x55, 0x4d, 0xae, 0x7e, 0x26, 0xfb, 0xe0, 0xce,
+	0x23, 0x31, 0xe6, 0xde, 0x16, 0xa6, 0x9a, 0x80, 0x74, 0xa0, 0xc1, 0x78, 0x3c, 0x8e, 0xc4, 0x5c,
+	0x09, 0x19, 0x7a, 0x35, 0x2c, 0x28, 0x42, 0x58, 0x37, 0x95, 0x4a, 0x7a, 0x75, 0x5c, 0x33, 0x01,
+	0x39, 0x82, 0xed, 0x59, 0xc2, 0xfc, 0x99, 0x18, 0x29, 0x39, 0xe3, 0xa1, 0x07, 0xa6, 0xd0, 0x60,
+	0x17, 0x1a, 0xea, 0x7e, 0xb5, 0x61, 0xaf, 0x7c, 0xbc, 0x33, 0xc6, 0x96, 0x1e, 0xed, 0x3f, 0x80,
+	0x9c, 0x1f, 0xcf, 0xee, 0x58, 0xbd, 0xc6, 0xb0, 0xd5, 0xe7, 0xa1, 0x12, 0x4a, 0xf0, 0xb8, 0x6f,
+	0xd4, 0xc8, 0x5f, 0x45, 0x0b, 0xd9, 0xa4, 0x07, 0x15, 0xad, 0x89, 0xe7, 0x60, 0xd5, 0xfe, 0xc3,
+	0x2a, 0x64, 0x15, 0x33, 0xc8, 0x3f, 0xb0, 0x8d, 0x8a, 0x8d, 0x8c, 0x60, 0x48, 0x64, 0x63, 0xf8,
+	0x5b, 0x1f, 0xc1, 0xfe, 0x39, 0x82, 0xb4, 0x81, 0x91, 0x09, 0x08, 0x83, 0xb6, 0xcf, 0xd8, 0x28,
+	0xdf, 0x6d, 0xa4, 0x5f, 0x34, 0x8a, 0x32, 0x95, 0x90, 0xf5, 0xc6, 0xf0, 0x28, 0x7d, 0xc5, 0xe3,
+	0x72, 0xd2, 0x96, 0xff, 0xb8, 0xd4, 0x27, 0x50, 0xd1, 0x7e, 0x41, 0xb1, 0x1a, 0xc3, 0xbd, 0xfc,
+	0x04, 0xe8, 0xa2, 0xcb, 0x98, 0x47, 0x14, 0x13, 0xba, 0xb7, 0xd0, 0x7e, 0xc5, 0x6f, 0xb8, 0xe2,
+	0xeb, 0x9b, 0xe6, 0x10, 0xea, 0xd8, 0x72, 0xa2, 0x71, 0x1b, 0xf1, 0x9a, 0x06, 0x2e, 0xf5, 0xe2,
+	0x43, 0x0d, 0x9d, 0x45, 0x0d, 0xbf, 0xd9, 0x70, 0x50, 0xde, 0xcd, 0x74, 0xb0, 0x6c, 0xaf, 0x4c,
+	0x09, 0x7b, 0x63, 0x25, 0x9c, 0x27, 0x95, 0x28, 0x3b, 0xa4, 0xb2, 0x91, 0x43, 0x32, 0x7e, 0xdd,
+	0x27, 0xf8, 0x25, 0x01, 0x74, 0x18, 0x9e, 0x6e, 0x85, 0xe2, 0x46, 0xa4, 0xe3, 0xb4, 0xd5, 0x95,
+	0x72, 0xd0, 0x36, 0x5b, 0xb5, 0xdc, 0xfd, 0x61, 0x41, 0xfb, 0x72, 0xce, 0xfc, 0x4d, 0xf4, 0x7c,
+	0x28, 0x99, 0xbd, 0x20, 0x19, 0x7e, 0xfb, 0xba, 0xca, 0x49, 0xbf, 0xfd, 0x5f, 0x6e, 0x76, 0x2c,
+	0x31, 0x95, 0xa1, 0xe1, 0x79, 0xa6, 0x2a, 0x5b, 0xc4, 0xd9, 0xc8, 0x22, 0x9b, 0x8f, 0x86, 0x4d,
+	0x4c, 0x95, 0xe0, 0xe9, 0xd6, 0x36, 0xd5, 0x4a, 0x4f, 0xd0, 0x76, 0xb2, 0x6a, 0xb9, 0xfb, 0xd9,
+	0x82, 0xbf, 0x28, 0x57, 0x91, 0xe0, 0x77, 0x5c, 0x77, 0x11, 0x97, 0x13, 0xe3, 0xdc, 0x5c, 0x99,
+	0x4f, 0xac, 0x82, 0x4f, 0xd6, 0xb0, 0x57, 0x13, 0xaa, 0x72, 0x32, 0x89, 0xb9, 0xa1, 0xd8, 0xa5,
+	0x69, 0xa4, 0xa5, 0xbe, 0x11, 0x81, 0x30, 0x1f, 0xa7, 0x4b, 0x4d, 0xd0, 0xfd, 0x00, 0xc7, 0x2b,
+	0xba, 0x79, 0x76, 0x33, 0xa5, 0xf1, 0xe6, 0x94, 0xc7, 0x5b, 0xf7, 0x93, 0x05, 0x9d, 0x6c, 0xf3,
+	0x97, 0x66, 0xe1, 0x04, 0x76, 0x0a, 0x72, 0x16, 0xb6, 0xff, 0x3d, 0x87, 0xb1, 0x89, 0x8f, 0xd0,
+	0xcc, 0x7a, 0x58, 0x63, 0xe7, 0x9c, 0x5c, 0x7b, 0x39, 0xb9, 0x4e, 0x81, 0xdc, 0x85, 0x3e, 0x2b,
+	0x8b, 0xf3, 0x7b, 0x06, 0x07, 0xc5, 0xed, 0x57, 0xef, 0xfe, 0xdc, 0x3f, 0x8b, 0x2f, 0x36, 0xec,
+	0x9f, 0x73, 0x3f, 0x1a, 0x4f, 0x5f, 0x86, 0x64, 0x0f, 0xb6, 0x66, 0xfc, 0xfd, 0x3b, 0x19, 0x65,
+	0xe4, 0x66, 0x61, 0x81, 0xa7, 0xca, 0x72, 0x9e, 0xdc, 0x22, 0x4f, 0xf9, 0xa4, 0xab, 0x96, 0x26,
+	0x5d, 0x1b, 0x00, 0x07, 0xd9, 0x68, 0x12, 0xc9, 0x20, 0x1d, 0x6d, 0x75, 0x44, 0x5e, 0x47, 0x32,
+	0x20, 0x7f, 0x40, 0xcd, 0x2c, 0x2b, 0x89, 0xb3, 0xcd, 0xa5, 0x5b, 0x18, 0x5f, 0x48, 0xf2, 0x27,
+	0x34, 0x22, 0x5f, 0x89, 0xf0, 0xda, 0x94, 0xea, 0xe9, 0x66, 0x53, 0x30, 0x10, 0xd6, 0x1e, 0x42,
+	0x3d, 0x4d, 0x50, 0x12, 0xef, 0x46, 0x36, 0xad, 0x19, 0xe0, 0x42, 0xfe, 0x7f, 0xfa, 0xf6, 0xef,
+	0x6b, 0xa1, 0xa6, 0xc9, 0x55, 0x7f, 0x2c, 0x83, 0x81, 0xb8, 0x99, 0xfa, 0x41, 0x30, 0x65, 0x6c,
+	0x60, 0xce, 0x7e, 0x9a, 0x8d, 0x92, 0x81, 0xb9, 0x5f, 0x5e, 0x55, 0xf1, 0xc2, 0xf8, 0xef, 0xcf,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0x0a, 0x16, 0xe4, 0xd8, 0x9d, 0x0a, 0x00, 0x00,
 }

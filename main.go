@@ -4,10 +4,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ilhammhdd/kudaki-externals/mysql"
+
 	"github.com/ilhammhdd/go-toolkit/safekit"
 
 	"github.com/ilhammhdd/kudaki-rental-service/externals/eventdriven"
-	"github.com/ilhammhdd/kudaki-rental-service/externals/mysql"
 )
 
 func init() {
@@ -24,8 +25,7 @@ func init() {
 func main() {
 	wp := safekit.NewWorkerPool()
 
-	wp.Work <- eventdriven.Checkout
-	wp.Work <- eventdriven.AddCartItem
+	wp.Worker <- new(eventdriven.AddCartItem)
 
 	wp.PoolWG.Wait()
 }

@@ -1,149 +1,191 @@
 package usecases
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/ilhammhdd/kudaki-entities/kudakiredisearch"
-
-	"github.com/google/uuid"
+	"github.com/RediSearch/redisearch-go/redisearch"
 
 	"github.com/ilhammhdd/kudaki-entities/store"
 
-	"github.com/RediSearch/redisearch-go/redisearch"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/google/uuid"
 	"github.com/ilhammhdd/go-toolkit/errorkit"
 	"github.com/ilhammhdd/kudaki-entities/events"
 	"github.com/ilhammhdd/kudaki-entities/rental"
+	"github.com/ilhammhdd/kudaki-entities/user"
+	kudakiredisearch "github.com/ilhammhdd/kudaki-externals/redisearch"
 )
 
 type AddCartItem struct {
-	DBO            DBOperator
-	CartClient     kudakiredisearch.RedisClient
-	ItemClient     kudakiredisearch.RedisClient
-	CartItemClient kudakiredisearch.RedisClient
+	DBO DBOperator
 }
 
-func (aci AddCartItem) initInOutEvent(in proto.Message) (inEvent *events.AddCartItemRequested, outEvent *events.CartItemAdded) {
-	inEventTemp := in.(*events.AddCartItemRequested)
+func (aci *AddCartItem) Handle(in proto.Message) (out proto.Message) {
+	inEvent, outEvent := aci.initInOutEvent(in)
 
-	var outEventTemp events.CartItemAdded
-	outEventTemp.Uid = inEventTemp.Uid
-	outEventTemp.EventStatus = &events.Status{}
-
-	return inEventTemp, &outEventTemp
-}
-
-func (aci AddCartItem) itemExists(itemUUID string) (item *store.Item, ok bool) {
-	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), aci.ItemClient.Name())
-	rawQuery := fmt.Sprintf(`@item_uuid:"%s"`, kudakiredisearch.RedisearchText(itemUUID).Sanitize())
-	itemDocs, total, err := client.Search(redisearch.NewQuery(rawQuery))
-	errorkit.ErrorHandled(err)
-
-	if total != 1 {
-		ok = false
-		return
+	existedStorefront, ok := aci.storefrontExists(inEvent.StorefrontUuid)
+	if !ok {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"storefront with the given UUID not found"}
+		return outEvent
 	}
 
-	item = new(store.Item)
-	ok = true
-	price, err := strconv.ParseInt(itemDocs[0].Properties["item_price"].(string), 10, 32)
-	errorkit.ErrorHandled(err)
-	rating, err := strconv.ParseFloat(itemDocs[0].Properties["item_rating"].(string), 10)
-	errorkit.ErrorHandled(err)
+	existedItem, ok := aci.itemExists(inEvent.ItemUuid, existedStorefront)
+	if !ok {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"item with the given UUID not found"}
+		return outEvent
+	}
 
-	item.Description = itemDocs[0].Properties["item_description"].(string)
-	item.Name = itemDocs[0].Properties["item_name"].(string)
-	item.Photo = itemDocs[0].Properties["item_photo"].(string)
-	item.Price = int32(price)
-	item.Rating = float32(rating)
-	item.Unit = itemDocs[0].Properties["item_unit"].(string)
-	item.Uuid = itemDocs[0].Properties["item_uuid"].(string)
+	usr := GetUserFromKudakiToken(inEvent.KudakiToken)
+
+	cart, ok := aci.cartExists(usr)
+	if ok {
+		log.Println("cart exists")
+		cart.TotalItems += uint32(inEvent.ItemAmount)
+		cart.TotalPrice += uint32(inEvent.ItemAmount * existedItem.Price)
+	} else {
+		cart = aci.createNewCart(inEvent, existedItem)
+	}
+
+	cartItem, ok := aci.cartItemExists(cart, existedItem)
+	if ok {
+		log.Println("cart item exists")
+		cartItem.TotalAmount += uint32(inEvent.ItemAmount)
+		cartItem.TotalPrice += uint32(inEvent.ItemAmount * existedItem.Price)
+	} else {
+		cartItem = aci.createNewCartItem(inEvent, cart, existedItem)
+	}
+
+	cartItem.Cart = cart
+	cartItem.Item = existedItem
+
+	log.Printf("existed item : %v", existedItem)
+	log.Printf("cart item after processing : total amount = %d", cartItem.TotalAmount)
+	log.Printf("cart item after processing : total price = %d", cartItem.TotalPrice)
+	log.Printf("cart after processing : total item = %d", cart.TotalItems)
+	log.Printf("cart after processing : total price = %d", cart.TotalPrice)
+
+	outEvent.CartItem = cartItem
+	outEvent.EventStatus.HttpCode = http.StatusOK
+
+	return outEvent
+}
+
+func (aci *AddCartItem) initInOutEvent(in proto.Message) (inEvent *events.AddCartItemRequested, outEvent *events.CartItemAdded) {
+	inEvent = in.(*events.AddCartItemRequested)
+
+	outEvent = new(events.CartItemAdded)
+	outEvent.AddCartItemRequested = inEvent
+	outEvent.EventStatus = new(events.Status)
+	outEvent.EventStatus.Timestamp = ptypes.TimestampNow()
+	outEvent.Uid = inEvent.Uid
+	outEvent.CartItem = new(rental.CartItem)
+
 	return
 }
 
-func (aci AddCartItem) cartExists(cartUUID string) (cart *rental.Cart, ok bool) {
-	rsClient := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), aci.CartClient.Name())
-	rsClient.CreateIndex(aci.CartClient.Schema())
-	rawQuery := fmt.Sprintf(`@cart_uuid:"%s" @cart_open:1`, kudakiredisearch.RedisearchText(cartUUID).Sanitize())
-	cartDocs, totalCarts, err := rsClient.Search(redisearch.NewQuery(rawQuery))
+func (aci *AddCartItem) storefrontExists(storefrontUUID string) (*store.Storefront, bool) {
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), kudakiredisearch.Storefront.Name())
+	client.CreateIndex(kudakiredisearch.Storefront.Schema())
+
+	rawQuery := fmt.Sprintf(`@storefront_uuid:"%s"`, kudakiredisearch.RedisearchText(storefrontUUID).Sanitize())
+	storefrontDocs, total, err := client.Search(redisearch.NewQuery(rawQuery))
 	errorkit.ErrorHandled(err)
 
-	if totalCarts == 0 {
-		ok = false
-		return
+	if total == 1 {
+		rating, err := strconv.ParseFloat(storefrontDocs[0].Properties["storefront_rating"].(string), 10)
+		errorkit.ErrorHandled(err)
+		totalItem, err := strconv.ParseInt(storefrontDocs[0].Properties["storefront_total_item"].(string), 10, 32)
+		errorkit.ErrorHandled(err)
+
+		storefront := new(store.Storefront)
+		storefront.Rating = float32(rating)
+		storefront.TotalItem = int32(totalItem)
+		storefront.Uuid = kudakiredisearch.RedisearchText(storefrontDocs[0].Properties["storefront_uuid"].(string)).UnSanitize()
+		return storefront, true
 	}
-
-	cart = new(rental.Cart)
-	ok = true
-
-	cartOpenNum := cartDocs[0].Properties["cart_open"].(int64)
-	cartTotalItems, err := strconv.ParseUint(cartDocs[0].Properties["cart_total_items"].(string), 10, 32)
-	errorkit.ErrorHandled(err)
-	cartTotalPrice, err := strconv.ParseUint(cartDocs[0].Properties["cart_total_price"].(string), 10, 32)
-	errorkit.ErrorHandled(err)
-
-	cart.Open = cartOpenNum == 1
-	cart.TotalItems = uint32(cartTotalItems)
-	cart.TotalPrice = uint32(cartTotalPrice)
-	cart.Uuid = cartDocs[0].Properties["cart_uuid"].(string)
-	return
-}
-
-func (aci AddCartItem) cartItemExists() (*rental.CartItem, bool) {
 
 	return nil, false
 }
 
-func (aci AddCartItem) Handle(in proto.Message) (out proto.Message) {
-	inEvent, outEvent := aci.initInOutEvent(in)
-	outEvent.EventStatus.HttpCode = http.StatusOK
-	outEvent.EventStatus.Timestamp = ptypes.TimestampNow()
+func (aci *AddCartItem) cartExists(usr *user.User) (*rental.Cart, bool) {
+	row, err := aci.DBO.QueryRow("SELECT uuid,total_price,total_items FROM carts WHERE user_uuid=? AND open=1;", usr.Uuid)
+	errorkit.ErrorHandled(err)
 
-	cartItem := new(rental.CartItem)
-	cartItem.Uuid = uuid.New().String()
-
-	if item, ok := aci.itemExists(inEvent.ItemUuid); ok {
-		cartItem.Item = item
-
-		if inEvent.CartUuid == "" {
-			newCart := new(rental.Cart)
-			newCart.Open = true
-			newCart.TotalItems = uint32(inEvent.ItemAmount)
-			newCart.TotalPrice = uint32(item.Price * inEvent.ItemAmount)
-			newCart.User = inEvent.User
-			newCart.Uuid = uuid.New().String()
-
-			cartItem.Cart = newCart
-			cartItem.Item = item
-		} else {
-			if cart, ok := aci.cartExists(inEvent.CartUuid); ok {
-				cartItem.Cart = cart
-				cartItem.Item = item
-				if existedCartItem, ok := aci.cartItemExists(); ok {
-					cartItem.TotalAmount = existedCartItem.TotalAmount + uint32(inEvent.ItemAmount)
-					cartItem.TotalPrice = existedCartItem.TotalAmount + uint32(item.Price*inEvent.ItemAmount)
-					cartItem.Uuid = existedCartItem.Uuid
-				} else {
-					cartItem.TotalAmount = uint32(inEvent.ItemAmount)
-					cartItem.TotalPrice = uint32(item.Price * inEvent.ItemAmount)
-					cartItem.Uuid = uuid.New().String()
-				}
-			} else {
-				outEvent.EventStatus.Errors = []string{"cart with the given uuid doesn't exists"}
-				outEvent.EventStatus.Timestamp = ptypes.TimestampNow()
-				outEvent.EventStatus.HttpCode = http.StatusNotFound
-				return outEvent
-			}
-		}
-	} else {
-		outEvent.EventStatus.Errors = []string{"item with the given uuid not found"}
-		outEvent.EventStatus.HttpCode = http.StatusNotFound
-		outEvent.EventStatus.Timestamp = ptypes.TimestampNow()
+	var existedCart rental.Cart
+	if row.Scan(&existedCart.Uuid, &existedCart.TotalPrice, &existedCart.TotalItems) != sql.ErrNoRows {
+		existedCart.Open = true
+		existedCart.User = usr
+		return &existedCart, true
 	}
+	return nil, false
+}
 
-	return outEvent
+func (aci *AddCartItem) createNewCart(inEvent *events.AddCartItemRequested, item *store.Item) *rental.Cart {
+	newCart := new(rental.Cart)
+	newCart.Open = true
+	newCart.TotalItems = uint32(inEvent.ItemAmount)
+	newCart.TotalPrice = uint32(item.Price * inEvent.ItemAmount)
+	newCart.User = GetUserFromKudakiToken(inEvent.KudakiToken)
+	newCart.Uuid = uuid.New().String()
+	return newCart
+}
+
+func (aci *AddCartItem) itemExists(itemUUID string, storefront *store.Storefront) (*store.Item, bool) {
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), kudakiredisearch.Item.Name())
+	client.CreateIndex(kudakiredisearch.Item.Schema())
+
+	rawQuery := fmt.Sprintf(`@item_uuid:"%s" @storefront_uuid:"%s"`, kudakiredisearch.RedisearchText(itemUUID).Sanitize(), kudakiredisearch.RedisearchText(storefront.Uuid).Sanitize())
+	itemDocs, total, err := client.Search(redisearch.NewQuery(rawQuery))
+	errorkit.ErrorHandled(err)
+
+	if total == 1 {
+		amount, _ := strconv.ParseInt(itemDocs[0].Properties["item_amount"].(string), 10, 32)
+		price, _ := strconv.ParseInt(itemDocs[0].Properties["item_price"].(string), 10, 32)
+		rating, _ := strconv.ParseFloat(itemDocs[0].Properties["item_rating"].(string), 10)
+
+		var item store.Item
+		item.Amount = int32(amount)
+		item.Description = itemDocs[0].Properties["item_description"].(string)
+		item.Name = itemDocs[0].Properties["item_name"].(string)
+		item.Photo = itemDocs[0].Properties["item_photo"].(string)
+		item.Price = int32(price)
+		item.Rating = float32(rating)
+		item.Storefront = storefront
+		item.Unit = itemDocs[0].Properties["item_unit"].(string)
+		item.Uuid = itemUUID
+		return &item, true
+	}
+	return nil, false
+}
+
+func (aci *AddCartItem) cartItemExists(cart *rental.Cart, item *store.Item) (*rental.CartItem, bool) {
+	row, err := aci.DBO.QueryRow("SELECT uuid,total_item,total_price FROM cart_items WHERE cart_uuid=? AND item_uuid=?;", cart.Uuid, item.Uuid)
+	errorkit.ErrorHandled(err)
+
+	var existedCartitem rental.CartItem
+	if row.Scan(&existedCartitem.Uuid, &existedCartitem.TotalAmount, &existedCartitem.TotalPrice) != sql.ErrNoRows {
+		existedCartitem.Cart = cart
+		existedCartitem.Item = item
+		return &existedCartitem, true
+	}
+	return nil, false
+}
+
+func (aci *AddCartItem) createNewCartItem(inEvent *events.AddCartItemRequested, cart *rental.Cart, item *store.Item) *rental.CartItem {
+	newCartItem := new(rental.CartItem)
+	newCartItem.Cart = cart
+	newCartItem.Item = item
+	newCartItem.TotalAmount = uint32(inEvent.ItemAmount)
+	newCartItem.TotalPrice = uint32(inEvent.ItemAmount * item.Price)
+	newCartItem.Uuid = uuid.New().String()
+
+	return newCartItem
 }
