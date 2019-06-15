@@ -3,7 +3,6 @@ package usecases
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -47,7 +46,6 @@ func (aci *AddCartItem) Handle(in proto.Message) (out proto.Message) {
 
 	cart, ok := aci.cartExists(usr)
 	if ok {
-		log.Println("cart exists")
 		cart.TotalItems += uint32(inEvent.ItemAmount)
 		cart.TotalPrice += uint32(inEvent.ItemAmount * existedItem.Price)
 	} else {
@@ -56,7 +54,6 @@ func (aci *AddCartItem) Handle(in proto.Message) (out proto.Message) {
 
 	cartItem, ok := aci.cartItemExists(cart, existedItem)
 	if ok {
-		log.Println("cart item exists")
 		cartItem.TotalAmount += uint32(inEvent.ItemAmount)
 		cartItem.TotalPrice += uint32(inEvent.ItemAmount * existedItem.Price)
 	} else {
@@ -65,12 +62,6 @@ func (aci *AddCartItem) Handle(in proto.Message) (out proto.Message) {
 
 	cartItem.Cart = cart
 	cartItem.Item = existedItem
-
-	log.Printf("existed item : %v", existedItem)
-	log.Printf("cart item after processing : total amount = %d", cartItem.TotalAmount)
-	log.Printf("cart item after processing : total price = %d", cartItem.TotalPrice)
-	log.Printf("cart after processing : total item = %d", cart.TotalItems)
-	log.Printf("cart after processing : total price = %d", cart.TotalPrice)
 
 	outEvent.CartItem = cartItem
 	outEvent.EventStatus.HttpCode = http.StatusOK

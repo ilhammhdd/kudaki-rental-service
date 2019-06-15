@@ -50,10 +50,6 @@
   name = "github.com/ilhammhdd/kudaki-externals"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/ilhammhdd/kudaki-store-service"
-
-[[constraint]]
   name = "gopkg.in/Shopify/sarama.v1"
   version = "1.19.0"
 
