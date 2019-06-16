@@ -180,3 +180,17 @@ func (aci *AddCartItem) createNewCartItem(inEvent *events.AddCartItemRequested, 
 
 	return newCartItem
 }
+
+type DeleteCartItem struct {
+	DBO DBOperator
+}
+
+func (dci *DeleteCartItem) Handle(in proto.Message) (out proto.Message) {
+
+	return nil
+}
+
+func (dci *DeleteCartItem) CartItemExists(cartItemUUID string) (*rental.CartItem, bool) {
+
+	return nil, false
+}
