@@ -4,12 +4,24 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/RediSearch/redisearch-go/redisearch"
 	"github.com/ilhammhdd/go-toolkit/errorkit"
 	"github.com/ilhammhdd/go-toolkit/jwtkit"
 	"github.com/ilhammhdd/kudaki-entities/user"
 
 	"github.com/golang/protobuf/proto"
 )
+
+type RedisClient interface {
+	Name() string
+	Schema() *redisearch.Schema
+}
+
+type RedisearchTextSanitizer interface {
+	Set(string)
+	Sanitize() string
+	UnSanitize() string
+}
 
 const (
 	DateTimeFormat = "%d-%02d-%02d %02d:%02d:%02d"

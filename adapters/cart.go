@@ -25,3 +25,22 @@ func (aci *AddCartItem) ParseOut(out proto.Message) (key string, message []byte)
 
 	return outEvent.Uid, outByte
 }
+
+type DeleteCartItem struct{}
+
+func (dci *DeleteCartItem) ParseIn(msg []byte) (proto.Message, bool) {
+	var inEvent events.DeleteCartItemRequested
+
+	if proto.Unmarshal(msg, &inEvent) == nil {
+		return &inEvent, true
+	}
+	return nil, false
+}
+
+func (dci *DeleteCartItem) ParseOut(out proto.Message) (key string, message []byte) {
+	outEvent := out.(*events.CartItemDeleted)
+
+	outByte, err := proto.Marshal(outEvent)
+	errorkit.ErrorHandled(err)
+	return outEvent.Uid, outByte
+}

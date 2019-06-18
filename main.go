@@ -26,6 +26,7 @@ func main() {
 	wp := safekit.NewWorkerPool()
 
 	wp.Worker <- new(eventdriven.AddCartItem)
+	wp.Worker <- new(eventdriven.DeleteCartItem)
 
 	wp.PoolWG.Wait()
 }

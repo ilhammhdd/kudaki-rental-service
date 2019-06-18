@@ -18,11 +18,13 @@ import (
 	"github.com/ilhammhdd/kudaki-entities/events"
 	"github.com/ilhammhdd/kudaki-entities/rental"
 	"github.com/ilhammhdd/kudaki-entities/user"
-	kudakiredisearch "github.com/ilhammhdd/kudaki-externals/redisearch"
 )
 
 type AddCartItem struct {
-	DBO DBOperator
+	DBO              DBOperator
+	Sanitizer        RedisearchTextSanitizer
+	StorefrontClient RedisClient
+	ItemClient       RedisClient
 }
 
 func (aci *AddCartItem) Handle(in proto.Message) (out proto.Message) {
@@ -83,10 +85,11 @@ func (aci *AddCartItem) initInOutEvent(in proto.Message) (inEvent *events.AddCar
 }
 
 func (aci *AddCartItem) storefrontExists(storefrontUUID string) (*store.Storefront, bool) {
-	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), kudakiredisearch.Storefront.Name())
-	client.CreateIndex(kudakiredisearch.Storefront.Schema())
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), aci.StorefrontClient.Name())
+	client.CreateIndex(aci.StorefrontClient.Schema())
 
-	rawQuery := fmt.Sprintf(`@storefront_uuid:"%s"`, kudakiredisearch.RedisearchText(storefrontUUID).Sanitize())
+	aci.Sanitizer.Set(storefrontUUID)
+	rawQuery := fmt.Sprintf(`@storefront_uuid:"%s"`, aci.Sanitizer.Sanitize())
 	storefrontDocs, total, err := client.Search(redisearch.NewQuery(rawQuery))
 	errorkit.ErrorHandled(err)
 
@@ -99,7 +102,8 @@ func (aci *AddCartItem) storefrontExists(storefrontUUID string) (*store.Storefro
 		storefront := new(store.Storefront)
 		storefront.Rating = float32(rating)
 		storefront.TotalItem = int32(totalItem)
-		storefront.Uuid = kudakiredisearch.RedisearchText(storefrontDocs[0].Properties["storefront_uuid"].(string)).UnSanitize()
+		aci.Sanitizer.Set(storefrontDocs[0].Properties["storefront_uuid"].(string))
+		storefront.Uuid = aci.Sanitizer.UnSanitize()
 		return storefront, true
 	}
 
@@ -130,10 +134,14 @@ func (aci *AddCartItem) createNewCart(inEvent *events.AddCartItemRequested, item
 }
 
 func (aci *AddCartItem) itemExists(itemUUID string, storefront *store.Storefront) (*store.Item, bool) {
-	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), kudakiredisearch.Item.Name())
-	client.CreateIndex(kudakiredisearch.Item.Schema())
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), aci.ItemClient.Name())
+	client.CreateIndex(aci.ItemClient.Schema())
 
-	rawQuery := fmt.Sprintf(`@item_uuid:"%s" @storefront_uuid:"%s"`, kudakiredisearch.RedisearchText(itemUUID).Sanitize(), kudakiredisearch.RedisearchText(storefront.Uuid).Sanitize())
+	aci.Sanitizer.Set(itemUUID)
+	sanitizedItemUUID := aci.Sanitizer.Sanitize()
+	aci.Sanitizer.Set(storefront.Uuid)
+	sanitizedstorefrontUUID := aci.Sanitizer.Sanitize()
+	rawQuery := fmt.Sprintf(`@item_uuid:"%s" @storefront_uuid:"%s"`, sanitizedItemUUID, sanitizedstorefrontUUID)
 	itemDocs, total, err := client.Search(redisearch.NewQuery(rawQuery))
 	errorkit.ErrorHandled(err)
 
@@ -182,15 +190,119 @@ func (aci *AddCartItem) createNewCartItem(inEvent *events.AddCartItemRequested, 
 }
 
 type DeleteCartItem struct {
-	DBO DBOperator
+	DBO        DBOperator
+	Sanitizer  RedisearchTextSanitizer
+	ItemClient RedisClient
 }
 
 func (dci *DeleteCartItem) Handle(in proto.Message) (out proto.Message) {
+	inEvent, outEvent := dci.initInOutEvent(in)
+	usr := GetUserFromKudakiToken(inEvent.KudakiToken)
 
+	existedCartItem := dci.CartItemExists(inEvent.CartItemUuid)
+	if existedCartItem == nil {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"cart item with the given uuid not found"}
+		return outEvent
+	}
+
+	existedCart := dci.CartExists(existedCartItem.Cart.Uuid, outEvent.User)
+	if existedCart == nil {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"cart corresponding with cart item not found"}
+		return outEvent
+	} else {
+		existedCart.TotalItems -= existedCartItem.TotalAmount
+		existedCart.TotalPrice -= existedCartItem.TotalPrice
+		existedCartItem.Cart = existedCart
+	}
+
+	existedItem := dci.ItemExists(existedCartItem.Item.Uuid, usr.Uuid)
+	if existedCart == nil {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"item corresponding with cart item not found"}
+		return outEvent
+	} else {
+		existedCartItem.Item = existedItem
+	}
+
+	outEvent.CartItem = existedCartItem
+	outEvent.EventStatus.HttpCode = http.StatusOK
+
+	return outEvent
+}
+
+func (dci *DeleteCartItem) initInOutEvent(in proto.Message) (inEvent *events.DeleteCartItemRequested, outEvent *events.CartItemDeleted) {
+	inEvent = in.(*events.DeleteCartItemRequested)
+
+	outEvent = new(events.CartItemDeleted)
+	outEvent.DeleteCartItemRequested = inEvent
+	outEvent.EventStatus = new(events.Status)
+	outEvent.EventStatus.Timestamp = ptypes.TimestampNow()
+	outEvent.Uid = inEvent.Uid
+	outEvent.User = GetUserFromKudakiToken(inEvent.KudakiToken)
+
+	return
+}
+
+func (dci *DeleteCartItem) CartItemExists(cartItemUUID string) *rental.CartItem {
+	row, err := dci.DBO.QueryRow("SELECT cart_uuid,item_uuid,total_item,total_price FROM cart_items WHERE uuid = ?;", cartItemUUID)
+	errorkit.ErrorHandled(err)
+
+	var existedCartItem rental.CartItem
+	existedCartItem.Cart = new(rental.Cart)
+	existedCartItem.Item = new(store.Item)
+	if row.Scan(&existedCartItem.Cart.Uuid, &existedCartItem.Item.Uuid, &existedCartItem.TotalAmount, &existedCartItem.TotalPrice) == nil {
+		existedCartItem.Uuid = cartItemUUID
+		return &existedCartItem
+	}
 	return nil
 }
 
-func (dci *DeleteCartItem) CartItemExists(cartItemUUID string) (*rental.CartItem, bool) {
+func (dci *DeleteCartItem) CartExists(cartUUID string, usr *user.User) *rental.Cart {
+	row, err := dci.DBO.QueryRow("SELECT open,total_items,total_price FROM carts WHERE uuid=? AND user_uuid=?;", cartUUID, usr.Uuid)
+	errorkit.ErrorHandled(err)
 
-	return nil, false
+	var open int
+	var existedCart rental.Cart
+	if row.Scan(&open, &existedCart.TotalItems, &existedCart.TotalPrice) == nil {
+		existedCart.User = usr
+		existedCart.Uuid = cartUUID
+		return &existedCart
+	}
+	return nil
+}
+
+func (dci *DeleteCartItem) ItemExists(itemUUID string, userUUID string) *store.Item {
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), dci.ItemClient.Name())
+	client.CreateIndex(dci.ItemClient.Schema())
+
+	dci.Sanitizer.Set(itemUUID)
+	rowQuery := fmt.Sprintf(`@item_uuid:"%s"`, dci.Sanitizer.Sanitize())
+	doc, total, err := client.Search(redisearch.NewQuery(rowQuery))
+	errorkit.ErrorHandled(err)
+
+	var item store.Item
+	item.Storefront = new(store.Storefront)
+	if total != 0 {
+		amount, err := strconv.ParseInt(doc[0].Properties["item_amount"].(string), 10, 32)
+		errorkit.ErrorHandled(err)
+		price, err := strconv.ParseInt(doc[0].Properties["item_price"].(string), 10, 32)
+		errorkit.ErrorHandled(err)
+		rating, err := strconv.ParseFloat(doc[0].Properties["item_rating"].(string), 10)
+		errorkit.ErrorHandled(err)
+
+		item.Uuid = dci.Sanitizer.UnSanitize()
+		item.Storefront.Uuid = doc[0].Properties["storefront_uuid"].(string)
+		item.Name = doc[0].Properties["item_name"].(string)
+		item.Amount = int32(amount)
+		item.Unit = doc[0].Properties["item_unit"].(string)
+		item.Price = int32(price)
+		item.Description = doc[0].Properties["item_description"].(string)
+		item.Photo = doc[0].Properties["item_photo"].(string)
+		item.Rating = float32(rating)
+
+		return &item
+	}
+	return nil
 }
