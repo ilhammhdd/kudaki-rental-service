@@ -197,3 +197,97 @@ func (dci *DeleteCartItem) reIndexCart(cart *rental.Cart) {
 	err := client.IndexOptions(redisearch.IndexingOptions{Partial: true, Replace: true}, updateCartDoc)
 	errorkit.ErrorHandled(err)
 }
+
+type UpdateCartItem struct{}
+
+func (uci *UpdateCartItem) Work() interface{} {
+	usecase := &usecases.UpdateCartItem{
+		DBO:        mysql.NewDBOperation(),
+		ItemClient: kudakiredisearch.Item,
+		Sanitizer:  new(kudakiredisearch.RedisearchText)}
+
+	ede := EventDrivenExternal{
+		PostUsecaseExecutor: uci,
+		eventDrivenAdapter:  new(adapters.UpdateCartItem),
+		eventDrivenUsecase:  usecase,
+		eventName:           events.RentalTopic_UPDATE_CART_ITEM_REQUESTED.String(),
+		inTopics:            []string{events.RentalTopic_UPDATE_CART_ITEM_REQUESTED.String()},
+		outTopic:            events.RentalTopic_CART_ITEM_UPDATED.String()}
+
+	ede.handle()
+	return nil
+}
+
+func (uci *UpdateCartItem) ExecutePostUsecase(inEvent proto.Message, outEvent proto.Message) {
+	out := outEvent.(*events.CartItemUpdated)
+
+	if out.EventStatus.HttpCode != http.StatusOK {
+		return
+	}
+
+	if out.UpdatedCartItem.TotalAmount == 0 {
+		uci.deleteCartItem(out.UpdatedCartItem.Uuid)
+		uci.deleteCartItemIndex(out.UpdatedCartItem)
+	} else {
+		uci.updateCartItem(out.UpdatedCartItem)
+		uci.reIndexCartItem(out.UpdatedCartItem)
+	}
+
+	uci.updateCart(out.UpdatedCartItem.Cart)
+	uci.reIndexCart(out.UpdatedCartItem.Cart)
+}
+
+func (uci *UpdateCartItem) updateCartItem(cartItem *rental.CartItem) {
+	dbo := mysql.NewDBOperation()
+	_, err := dbo.Command("UPDATE cart_items SET total_item=?,total_price=? WHERE uuid=?;", cartItem.TotalAmount, cartItem.TotalPrice, cartItem.Uuid)
+	errorkit.ErrorHandled(err)
+}
+
+func (uci *UpdateCartItem) deleteCartItem(cartItemUUID string) {
+	dbo := mysql.NewDBOperation()
+	_, err := dbo.Command("DELETE FROM cart_items WHERE uuid=?;", cartItemUUID)
+	errorkit.ErrorHandled(err)
+}
+
+func (uci *UpdateCartItem) updateCart(cart *rental.Cart) {
+	dbo := mysql.NewDBOperation()
+	_, err := dbo.Command("UPDATE carts SET total_items=?,total_price=? WHERE uuid=?;", cart.TotalItems, cart.TotalPrice, cart.Uuid)
+	errorkit.ErrorHandled(err)
+}
+
+func (uci *UpdateCartItem) reIndexCartItem(cartItem *rental.CartItem) {
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), kudakiredisearch.CartItem.Name())
+	client.CreateIndex(kudakiredisearch.CartItem.Schema())
+
+	sanitizer := kudakiredisearch.RedisearchText(cartItem.Uuid)
+	doc := redisearch.NewDocument(sanitizer.Sanitize(), 1.0)
+	doc.Set("cart_item_total_amount", cartItem.TotalAmount)
+	doc.Set("cart_item_total_price", cartItem.TotalPrice)
+
+	err := client.IndexOptions(redisearch.IndexingOptions{Partial: true, Replace: true}, doc)
+	errorkit.ErrorHandled(err)
+}
+
+func (uci *UpdateCartItem) deleteCartItemIndex(cartItem *rental.CartItem) {
+	host := redisearch.NewSingleHostPool(os.Getenv("REDISEARCH_SERVER"))
+	defer host.Close()
+	conn := host.Get()
+	defer conn.Close()
+
+	sanitizer := kudakiredisearch.RedisearchText(cartItem.Uuid)
+	_, err := conn.Do("FT.DEL", kudakiredisearch.CartItem.Name(), sanitizer.Sanitize(), "DD")
+	errorkit.ErrorHandled(err)
+}
+
+func (uci *UpdateCartItem) reIndexCart(cart *rental.Cart) {
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), kudakiredisearch.Cart.Name())
+	client.CreateIndex(kudakiredisearch.Cart.Schema())
+
+	sanitizer := kudakiredisearch.RedisearchText(cart.Uuid)
+	doc := redisearch.NewDocument(sanitizer.Sanitize(), 1.0)
+	doc.Set("cart_total_price", cart.TotalPrice)
+	doc.Set("cart_total_items", cart.TotalItems)
+
+	err := client.IndexOptions(redisearch.IndexingOptions{Partial: true, Replace: true}, doc)
+	errorkit.ErrorHandled(err)
+}

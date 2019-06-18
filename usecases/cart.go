@@ -306,3 +306,136 @@ func (dci *DeleteCartItem) ItemExists(itemUUID string, userUUID string) *store.I
 	}
 	return nil
 }
+
+type UpdateCartItem struct {
+	DBO        DBOperator
+	ItemClient RedisClient
+	Sanitizer  RedisearchTextSanitizer
+}
+
+func (uci *UpdateCartItem) Handle(in proto.Message) (out proto.Message) {
+	inEvent, outEvent := uci.initInOutEvent(in)
+
+	existedCartItem := uci.cartItemExists(inEvent.CartItemUuid)
+	if existedCartItem == nil {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"cart item with the given uuid not found"}
+		return outEvent
+	}
+	*outEvent.InitialCartItem = *existedCartItem
+
+	existedItem := uci.itemExists(existedCartItem.Item.Uuid, outEvent.User.Uuid)
+	if existedItem == nil {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"cart item with the given uuid not found"}
+		return outEvent
+	}
+
+	availableItemAmount := existedItem.Amount + int32(existedCartItem.TotalAmount)
+
+	if availableItemAmount < inEvent.TotalItem {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"available item amount is insufficient"}
+		return outEvent
+	}
+
+	existedCart := uci.cartExists(existedCartItem.Cart.Uuid, outEvent.User.Uuid)
+	if existedCart == nil {
+		outEvent.EventStatus.HttpCode = http.StatusNotFound
+		outEvent.EventStatus.Errors = []string{"cart with the given uuid not found"}
+		return outEvent
+	}
+
+	existedCart.TotalItems -= existedCartItem.TotalAmount
+	existedCart.TotalPrice -= existedCartItem.TotalPrice
+	existedCart.TotalItems += uint32(inEvent.TotalItem)
+	existedCart.TotalPrice += uint32(inEvent.TotalItem * existedItem.Price)
+
+	(*existedCartItem).TotalAmount = uint32(inEvent.TotalItem)
+	(*existedCartItem).TotalPrice = uint32(inEvent.TotalItem * existedItem.Price)
+	existedCartItem.Cart = existedCart
+
+	outEvent.UpdatedCartItem = existedCartItem
+	outEvent.EventStatus.HttpCode = http.StatusOK
+	return outEvent
+}
+
+func (uci *UpdateCartItem) initInOutEvent(in proto.Message) (inEvent *events.UpdateCartItemRequested, outEvent *events.CartItemUpdated) {
+	inEvent = in.(*events.UpdateCartItemRequested)
+
+	outEvent = &events.CartItemUpdated{
+		EventStatus:             &events.Status{Timestamp: ptypes.TimestampNow()},
+		InitialCartItem:         new(rental.CartItem),
+		Uid:                     inEvent.Uid,
+		UpdateCartItemRequested: inEvent,
+		User:                    GetUserFromKudakiToken(inEvent.KudakiToken)}
+	return
+}
+
+func (uci *UpdateCartItem) cartItemExists(cartItemUUID string) *rental.CartItem {
+	row, err := uci.DBO.QueryRow("SELECT cart_uuid,item_uuid,total_item,total_price FROM cart_items WHERE uuid=?;", cartItemUUID)
+	errorkit.ErrorHandled(err)
+
+	var cartItem rental.CartItem
+	cartItem.Cart = new(rental.Cart)
+	cartItem.Item = new(store.Item)
+	if row.Scan(&cartItem.Cart.Uuid, &cartItem.Item.Uuid, &cartItem.TotalAmount, &cartItem.TotalPrice) == sql.ErrNoRows {
+		return nil
+	}
+	cartItem.Uuid = cartItemUUID
+	return &cartItem
+}
+
+func (uci *UpdateCartItem) cartExists(cartUUID, userUUID string) *rental.Cart {
+	row, err := uci.DBO.QueryRow("SELECT total_price,total_items,open FROM carts WHERE uuid=? AND user_uuid=?;", cartUUID, userUUID)
+	errorkit.ErrorHandled(err)
+
+	var cart rental.Cart
+	cart.User = new(user.User)
+	var open int
+	if row.Scan(&cart.TotalPrice, &cart.TotalItems, &open) == sql.ErrNoRows {
+		return nil
+	}
+
+	if open == 1 {
+		cart.Open = true
+	} else if open == 0 {
+		cart.Open = false
+	}
+	cart.Uuid = cartUUID
+	return &cart
+}
+
+func (uci *UpdateCartItem) itemExists(itemUUID string, userUUID string) *store.Item {
+	client := redisearch.NewClient(os.Getenv("REDISEARCH_SERVER"), uci.ItemClient.Name())
+	client.CreateIndex(uci.ItemClient.Schema())
+
+	uci.Sanitizer.Set(itemUUID)
+	rowQuery := fmt.Sprintf(`@item_uuid:"%s"`, uci.Sanitizer.Sanitize())
+	doc, total, err := client.Search(redisearch.NewQuery(rowQuery))
+	errorkit.ErrorHandled(err)
+
+	var item store.Item
+	item.Storefront = new(store.Storefront)
+	if total != 0 {
+		amount, err := strconv.ParseInt(doc[0].Properties["item_amount"].(string), 10, 32)
+		errorkit.ErrorHandled(err)
+		price, err := strconv.ParseInt(doc[0].Properties["item_price"].(string), 10, 32)
+		errorkit.ErrorHandled(err)
+		rating, err := strconv.ParseFloat(doc[0].Properties["item_rating"].(string), 10)
+		errorkit.ErrorHandled(err)
+
+		item.Uuid = uci.Sanitizer.UnSanitize()
+		item.Storefront.Uuid = doc[0].Properties["storefront_uuid"].(string)
+		item.Name = doc[0].Properties["item_name"].(string)
+		item.Amount = int32(amount)
+		item.Unit = doc[0].Properties["item_unit"].(string)
+		item.Price = int32(price)
+		item.Description = doc[0].Properties["item_description"].(string)
+		item.Photo = doc[0].Properties["item_photo"].(string)
+		item.Rating = float32(rating)
+
+		return &item
+	}
+	return nil
+}

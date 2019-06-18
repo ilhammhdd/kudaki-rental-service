@@ -44,3 +44,22 @@ func (dci *DeleteCartItem) ParseOut(out proto.Message) (key string, message []by
 	errorkit.ErrorHandled(err)
 	return outEvent.Uid, outByte
 }
+
+type UpdateCartItem struct{}
+
+func (uci *UpdateCartItem) ParseIn(msg []byte) (proto.Message, bool) {
+	var inEvent events.UpdateCartItemRequested
+	if proto.Unmarshal(msg, &inEvent) == nil {
+		return &inEvent, true
+	}
+	return nil, false
+}
+
+func (uci *UpdateCartItem) ParseOut(out proto.Message) (key string, message []byte) {
+	outEvent := out.(*events.CartItemUpdated)
+
+	outByte, err := proto.Marshal(out)
+	errorkit.ErrorHandled(err)
+
+	return outEvent.Uid, outByte
+}

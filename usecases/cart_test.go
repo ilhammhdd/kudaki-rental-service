@@ -15,8 +15,6 @@ import (
 
 	"github.com/ilhammhdd/go-toolkit/errorkit"
 	"github.com/ilhammhdd/kudaki-entities/user"
-
-	"github.com/ilhammhdd/kudaki-rental-service/usecases"
 )
 
 // var deleteCartItemTests = []struct {
@@ -57,26 +55,41 @@ var deleteCartItemTests = []struct {
 	},
 }
 
-func TestDeleteCartItem(t *testing.T) {
-	mysql.OpenDB("tcp(178.62.107.160:3306)", "root", "mysqlrocks", "kudaki_rental")
+func TestPointer(t *testing.T) {
+	type one struct {
+		word string
+	}
 
-	handler := &usecases.DeleteCartItem{DBO: mysql.NewDBOperation()}
-	log.Println(handler)
-
-	// for _, testCase := range  {
-	// 	existedCartItem, ok := handler.CartItemExists(testCase.cartItemUUID)
-	// 	if ok && testCase.cartItemExists {
-	// 		log.Println(existedCartItem)
-	// 	} else if !ok && !testCase.cartItemExists {
-
-	// 	} else {
-	// 		t.Errorf("cart item existence not matched : given = %v, expected = %v", ok, testCase.cartItemExists)
-	// 	}
-
-	// 	existedCart, ok := handler.CartExists(cartUUID)
-
-	// }
+	ori := &one{"ori"}
+	second := new(one)
+	third := new(one)
+	*second = *ori
+	ori.word = "not ori"
+	third = ori
+	t.Logf("second = %v", second.word)
+	t.Logf("third = %v", third.word)
 }
+
+// func TestDeleteCartItem(t *testing.T) {
+// 	mysql.OpenDB("tcp(178.62.107.160:3306)", "root", "mysqlrocks", "kudaki_rental")
+
+// 	handler := &usecases.DeleteCartItem{DBO: mysql.NewDBOperation()}
+// 	log.Println(handler)
+
+// for _, testCase := range  {
+// 	existedCartItem, ok := handler.CartItemExists(testCase.cartItemUUID)
+// 	if ok && testCase.cartItemExists {
+// 		log.Println(existedCartItem)
+// 	} else if !ok && !testCase.cartItemExists {
+
+// 	} else {
+// 		t.Errorf("cart item existence not matched : given = %v, expected = %v", ok, testCase.cartItemExists)
+// 	}
+
+// 	existedCart, ok := handler.CartExists(cartUUID)
+
+// }
+// }
 
 var mockItemsUUIDs []string = []string{
 	"f9a7ac41-d0f5-4704-82d6-ba38033a1160",
