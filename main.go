@@ -4,11 +4,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ilhammhdd/kudaki-externals/mysql"
+	"github.com/ilhammhdd/kudaki-rental-service/externals"
+
+	"github.com/ilhammhdd/kudaki-rental-service/externals/mysql"
 
 	"github.com/ilhammhdd/go-toolkit/safekit"
-
-	"github.com/ilhammhdd/kudaki-rental-service/externals/eventdriven"
 )
 
 func init() {
@@ -19,15 +19,16 @@ func init() {
 		}
 	}
 
-	mysql.OpenDB(os.Getenv("DB_PATH"), os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+	mysql.CommandDB = mysql.OpenDB(os.Getenv("DB_PATH"), os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+	mysql.QueryDB = mysql.OpenDB(os.Getenv("QUERY_DB_PATH"), os.Getenv("QUERY_DB_USERNAME"), os.Getenv("QUERY_DB_PASSWORD"), os.Getenv("QUERY_DB_NAME"))
 }
 
 func main() {
 	wp := safekit.NewWorkerPool()
 
-	wp.Worker <- new(eventdriven.AddCartItem)
-	wp.Worker <- new(eventdriven.DeleteCartItem)
-	wp.Worker <- new(eventdriven.UpdateCartItem)
+	wp.Worker <- new(externals.AddCartItem)
+	wp.Worker <- new(externals.UserVerificationEmailSent)
+	wp.Worker <- new(externals.RetrieveCartItems)
 
 	wp.PoolWG.Wait()
 }
