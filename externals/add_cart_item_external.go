@@ -66,7 +66,7 @@ func (aci *AddCartItem) upsertCart(out *events.CartItemAdded) {
 func (aci *AddCartItem) upsertCartItem(out *events.CartItemAdded) {
 	dboCartItem := mysql.NewDBOperation(mysql.CommandDB)
 
-	_, err := dboCartItem.Command("INSERT INTO kudaki_rental.cart_items(id,uuid,cart_uuid,item_uuid,total_item,total_price,unit_price,duration_from,duration_to,created_at) VALUES(?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP());",
+	_, err := dboCartItem.Command("INSERT INTO kudaki_rental.cart_items(id,uuid,cart_uuid,item_uuid,total_item,total_price,unit_price,duration_from,duration_to,created_at) VALUES(?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP()) ON DUPLICATE KEY UPDATE total_item=?, total_price=?;",
 		out.CartItem.Id,
 		out.CartItem.Uuid,
 		out.CartItem.Cart.Uuid,
@@ -74,7 +74,9 @@ func (aci *AddCartItem) upsertCartItem(out *events.CartItemAdded) {
 		out.CartItem.TotalItem,
 		out.CartItem.TotalPrice,
 		out.CartItem.UnitPrice,
-		out.CartItem.DurationFrom.Seconds,
-		out.CartItem.DurationTo.Seconds)
+		out.CartItem.DurationFrom.GetSeconds(),
+		out.CartItem.DurationTo.GetSeconds(),
+		out.CartItem.TotalItem,
+		out.CartItem.TotalPrice)
 	errorkit.ErrorHandled(err)
 }

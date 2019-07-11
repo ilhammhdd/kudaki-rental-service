@@ -29,6 +29,8 @@ func main() {
 	wp.Worker <- new(externals.AddCartItem)
 	wp.Worker <- new(externals.UserVerificationEmailSent)
 	wp.Worker <- new(externals.RetrieveCartItems)
+	wp.Worker <- new(externals.DeleteCartItem)
+	wp.Worker <- new(externals.UpdateCartItem)
 
 	wp.PoolWG.Wait()
 }

@@ -49,7 +49,7 @@ func (aci *AddCartItem) Handle(in proto.Message) (out proto.Message) {
 
 	cartItem.Cart = openCart
 
-	aci.updateCart(cartItem)
+	aci.updateCart(inEvent, cartItem, item)
 
 	outEvent.CartItem = cartItem
 	outEvent.EventStatus.HttpCode = http.StatusOK
@@ -86,7 +86,7 @@ func (aci *AddCartItem) retrieveOpenCart(usr *user.User) *rental.Cart {
 		return nil
 	}
 
-	cart.CreatedAt, err = ptypes.TimestampProto(time.Unix(createdAt, createdAt*1e9))
+	cart.CreatedAt, err = ptypes.TimestampProto(time.Unix(createdAt, 0))
 	errorkit.ErrorHandled(err)
 
 	return &cart
@@ -118,7 +118,7 @@ func (aci *AddCartItem) retrieveItem(itemUuid string) *store.Item {
 
 	item.ItemDimension.UnitOfMeasurement = store.UnitofMeasurement(store.UnitofMeasurement_value[unitOfMeasurement])
 
-	createdAtProto, err := ptypes.TimestampProto(time.Unix(createdAt, createdAt*1e9))
+	createdAtProto, err := ptypes.TimestampProto(time.Unix(createdAt, 0))
 	errorkit.ErrorHandled(err)
 	item.CreatedAt = createdAtProto
 
@@ -151,11 +151,11 @@ func (aci *AddCartItem) retrieveCartItem(item *store.Item, cart *rental.Cart) *r
 
 	cartItem.Cart = cart
 
-	durationFromProto, err := ptypes.TimestampProto(time.Unix(durationFrom, durationFrom*1e9))
+	durationFromProto, err := ptypes.TimestampProto(time.Unix(durationFrom, 0))
 	errorkit.ErrorHandled(err)
-	durationToProto, err := ptypes.TimestampProto(time.Unix(durationTo, durationTo*1e9))
+	durationToProto, err := ptypes.TimestampProto(time.Unix(durationTo, 0))
 	errorkit.ErrorHandled(err)
-	createdAtProto, err := ptypes.TimestampProto(time.Unix(createdAt, createdAt*1e9))
+	createdAtProto, err := ptypes.TimestampProto(time.Unix(createdAt, 0))
 	errorkit.ErrorHandled(err)
 
 	cartItem.DurationFrom = durationFromProto
@@ -171,7 +171,7 @@ func (aci *AddCartItem) updateCartItem(inEvent *events.AddCartItem, cartItem *re
 }
 
 func (aci *AddCartItem) initCartItem(inEvent *events.AddCartItem, item *store.Item, cart *rental.Cart) *rental.CartItem {
-	durationFromProto, err := ptypes.TimestampProto(time.Unix(inEvent.DurationFrom, inEvent.DurationFrom*1e9))
+	durationFromProto, err := ptypes.TimestampProto(time.Unix(inEvent.DurationFrom, 0))
 	errorkit.ErrorHandled(err)
 
 	var durationTo int64
@@ -186,7 +186,7 @@ func (aci *AddCartItem) initCartItem(inEvent *events.AddCartItem, item *store.It
 		durationTo = inEvent.DurationFrom + int64(inEvent.Duration)*3.154e7
 	}
 
-	durationToProto, err := ptypes.TimestampProto(time.Unix(durationTo, durationTo*1e9))
+	durationToProto, err := ptypes.TimestampProto(time.Unix(durationTo, 0))
 	errorkit.ErrorHandled(err)
 
 	return &rental.CartItem{
@@ -200,7 +200,7 @@ func (aci *AddCartItem) initCartItem(inEvent *events.AddCartItem, item *store.It
 		Uuid:         uuid.New().String()}
 }
 
-func (aci *AddCartItem) updateCart(cartItem *rental.CartItem) {
-	(*cartItem.Cart).TotalItems += cartItem.TotalItem
-	(*cartItem.Cart).TotalPrice += cartItem.TotalPrice
+func (aci *AddCartItem) updateCart(inEvent *events.AddCartItem, cartItem *rental.CartItem, item *store.Item) {
+	(*cartItem.Cart).TotalItems += inEvent.ItemAmount
+	(*cartItem.Cart).TotalPrice += inEvent.ItemAmount * item.Price
 }
