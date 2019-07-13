@@ -17,7 +17,7 @@ func (uci *UpdateCartItem) ParseIn(msg []byte) (proto.Message, bool) {
 }
 
 func (uci *UpdateCartItem) ParseOut(out proto.Message) (key string, message []byte) {
-	outEvent := out.(*events.CartItemUpdated)
+	outEvent := out.(*events.CartItemsUpdated)
 
 	outByte, err := proto.Marshal(outEvent)
 	errorkit.ErrorHandled(err)

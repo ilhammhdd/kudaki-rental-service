@@ -28,17 +28,17 @@ func (uci *UpdateCartItem) Handle(in proto.Message) (out proto.Message) {
 	}
 	updatedCartItem := uci.recalculateCartItemAndCart(inEvent, initialCartItem)
 
-	outEvent.InitialCartItem = initialCartItem
-	outEvent.UpdatedCartItem = updatedCartItem
+	outEvent.InitialCartItem = append(outEvent.InitialCartItem, initialCartItem)
+	outEvent.UpdatedCartItem = append(outEvent.UpdatedCartItem, updatedCartItem)
 	outEvent.EventStatus.HttpCode = http.StatusOK
 
 	return outEvent
 }
 
-func (uci *UpdateCartItem) initInOutEvent(in proto.Message) (inEvent *events.UpdateCartItem, outEvent *events.CartItemUpdated) {
+func (uci *UpdateCartItem) initInOutEvent(in proto.Message) (inEvent *events.UpdateCartItem, outEvent *events.CartItemsUpdated) {
 	inEvent = in.(*events.UpdateCartItem)
 
-	outEvent = new(events.CartItemUpdated)
+	outEvent = new(events.CartItemsUpdated)
 	outEvent.EventStatus = new(events.Status)
 	outEvent.EventStatus.Timestamp = ptypes.TimestampNow()
 	outEvent.Uid = inEvent.Uid

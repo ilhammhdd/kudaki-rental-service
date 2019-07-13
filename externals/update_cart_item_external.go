@@ -23,14 +23,14 @@ func (uci *UpdateCartItem) Work() interface{} {
 		eventDrivenUsecase:  &usecase,
 		eventName:           events.RentalServiceCommandTopic_UPDATE_CART_ITEM.String(),
 		inTopics:            []string{events.RentalServiceCommandTopic_UPDATE_CART_ITEM.String()},
-		outTopic:            events.RentalServiceEventTopic_CART_ITEM_UPDATED.String()}
+		outTopic:            events.RentalServiceEventTopic_CART_ITEMS_UPDATED.String()}
 
 	ede.handle()
 	return nil
 }
 
 func (uci *UpdateCartItem) ExecutePostUsecase(inEvent proto.Message, outEvent proto.Message) {
-	out := outEvent.(*events.CartItemUpdated)
+	out := outEvent.(*events.CartItemsUpdated)
 
 	if out.EventStatus.HttpCode != http.StatusOK {
 		return
@@ -40,16 +40,16 @@ func (uci *UpdateCartItem) ExecutePostUsecase(inEvent proto.Message, outEvent pr
 	uci.updateCart(out)
 }
 
-func (uci *UpdateCartItem) updateCartItem(out *events.CartItemUpdated) {
+func (uci *UpdateCartItem) updateCartItem(out *events.CartItemsUpdated) {
 	dbo := mysql.NewDBOperation(mysql.CommandDB)
 	_, err := dbo.Command("UPDATE kudaki_rental.cart_items SET total_item = ?, total_price = ? WHERE uuid=?",
-		out.UpdatedCartItem.TotalItem, out.UpdatedCartItem.TotalPrice, out.UpdatedCartItem.Uuid)
+		out.UpdatedCartItem[0].TotalItem, out.UpdatedCartItem[0].TotalPrice, out.UpdatedCartItem[0].Uuid)
 	errorkit.ErrorHandled(err)
 }
 
-func (uci *UpdateCartItem) updateCart(out *events.CartItemUpdated) {
+func (uci *UpdateCartItem) updateCart(out *events.CartItemsUpdated) {
 	dbo := mysql.NewDBOperation(mysql.CommandDB)
 	_, err := dbo.Command("UPDATE kudaki_rental.carts SET total_price = ?,total_items = ? WHERE uuid = ?;",
-		out.UpdatedCartItem.Cart.TotalPrice, out.UpdatedCartItem.Cart.TotalItems, out.UpdatedCartItem.Cart.Uuid)
+		out.UpdatedCartItem[0].Cart.TotalPrice, out.UpdatedCartItem[0].Cart.TotalItems, out.UpdatedCartItem[0].Cart.Uuid)
 	errorkit.ErrorHandled(err)
 }
