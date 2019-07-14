@@ -25,7 +25,7 @@ func (uci *UpdateCartItem) Work() interface{} {
 		inTopics:            []string{events.RentalServiceCommandTopic_UPDATE_CART_ITEM.String()},
 		outTopic:            events.RentalServiceEventTopic_CART_ITEMS_UPDATED.String()}
 
-	ede.handleSingleConsumer()
+	ede.handle()
 	return nil
 }
 

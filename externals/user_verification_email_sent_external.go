@@ -20,7 +20,7 @@ func (uves *UserVerificationEmailSent) Work() interface{} {
 		eventName:           events.UserAuthServiceEventTopic_USER_VERIFICATION_EMAIL_SENT.String(),
 		inTopics:            []string{events.UserAuthServiceEventTopic_USER_VERIFICATION_EMAIL_SENT.String()}}
 
-	edde.handleSingleConsumer()
+	edde.handle()
 	return nil
 }
 

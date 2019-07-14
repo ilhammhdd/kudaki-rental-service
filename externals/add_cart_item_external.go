@@ -25,7 +25,7 @@ func (aci *AddCartItem) Work() interface{} {
 		inTopics:            []string{events.RentalServiceCommandTopic_ADD_CART_ITEM.String()},
 		outTopic:            events.RentalServiceEventTopic_CART_ITEM_ADDED.String()}
 
-	ede.handleSingleConsumer()
+	ede.handle()
 
 	return nil
 }

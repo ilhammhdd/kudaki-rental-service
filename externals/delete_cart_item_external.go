@@ -25,7 +25,7 @@ func (dci *DeleteCartItem) Work() interface{} {
 		inTopics:            []string{events.RentalServiceCommandTopic_DELETE_CART_ITEM.String()},
 		outTopic:            events.RentalServiceEventTopic_CART_ITEM_DELETED.String()}
 
-	ede.handleSingleConsumer()
+	ede.handle()
 	return nil
 }
 
