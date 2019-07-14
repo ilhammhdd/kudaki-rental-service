@@ -22,6 +22,6 @@ func (rci *RetrieveCartItems) Work() interface{} {
 		inTopics:           []string{events.RentalServiceCommandTopic_RETRIEVE_CART_ITEMS.String()},
 		outTopic:           events.RentalServiceEventTopic_CART_ITEMS_RETRIEVED.String()}
 
-	ede.handle()
+	ede.handleSingleConsumer()
 	return nil
 }
