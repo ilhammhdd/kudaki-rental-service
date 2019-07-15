@@ -1,7 +1,6 @@
 package usecases
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -147,26 +146,13 @@ type StorefrontTemp struct {
 }
 
 type CartItemTemp struct {
-	rental.CartItem
+	Id             int64       `json:"id"`
+	Uuid           string      `json:"uuid"`
+	TotalItem      int32       `json:"total_item"`
+	TotalPrice     int32       `json:"total_price"`
+	UnitPrice      int32       `json:"unit_price"`
 	DurationFromT  int64       `json:"duration_from"`
 	DurationToT    int64       `json:"duration_to"`
 	Item           *store.Item `json:"item"`
-	StorefrontUuid string
-}
-
-func (cit CartItemTemp) MarshalJSON() ([]byte, error) {
-
-	var tmp struct {
-		rental.CartItem
-		DurationFromT int64       `json:"duration_from"`
-		DurationToT   int64       `json:"duration_to"`
-		Item          *store.Item `json:"item"`
-	}
-
-	tmp.CartItem = cit.CartItem
-	tmp.DurationFromT = cit.DurationFromT
-	tmp.DurationToT = cit.DurationToT
-	tmp.Item = cit.Item
-
-	return json.Marshal(tmp)
+	StorefrontUuid string      `json:"-"`
 }
