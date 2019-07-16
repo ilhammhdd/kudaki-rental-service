@@ -70,7 +70,6 @@ func (rci *RetrieveCartItems) retrieveCartItems(inEvent *events.RetrieveCartItem
 	for rows.Next() {
 		var cartItemTemp CartItemTemp
 		cartItemTemp.Item = new(store.Item)
-		var priceDuration string
 
 		err = rows.Scan(
 			&cartItemTemp.Id,
@@ -85,10 +84,9 @@ func (rci *RetrieveCartItems) retrieveCartItems(inEvent *events.RetrieveCartItem
 			&cartItemTemp.Item.Name,
 			&cartItemTemp.Item.Photo,
 			&cartItemTemp.Item.Price,
-			&priceDuration,
+			&cartItemTemp.PriceDurationT,
 			&cartItemTemp.StorefrontUuid)
 		errorkit.ErrorHandled(err)
-		cartItemTemp.Item.PriceDuration = store.PriceDuration(store.PriceDuration_value[priceDuration])
 
 		cartItemTemps = append(cartItemTemps, &cartItemTemp)
 	}
@@ -153,6 +151,7 @@ type CartItemTemp struct {
 	UnitPrice      int32       `json:"unit_price"`
 	DurationFromT  int64       `json:"duration_from"`
 	DurationToT    int64       `json:"duration_to"`
+	PriceDurationT string      `json:"price_duration"`
 	Item           *store.Item `json:"item"`
 	StorefrontUuid string      `json:"-"`
 }
