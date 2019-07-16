@@ -137,8 +137,8 @@ type CartTemp struct {
 }
 
 type StorefrontTemp struct {
-	Id               int64
-	Uuid             string
+	Id               int64           `json:"-"`
+	Uuid             string          `json:"-"`
 	OwnerName        string          `json:"owner_name"`
 	OwnerEmail       string          `json:"owner_email"`
 	OwnerPhoneNumber string          `json:"owner_phone_number"`
