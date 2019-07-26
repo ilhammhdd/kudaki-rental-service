@@ -65,6 +65,7 @@ func (rci *RetrieveCartItems) retrieveCartItems(inEvent *events.RetrieveCartItem
 	rows, err := rci.DBO.Query("SELECT ci.id, ci.uuid, ci.total_item, ci.total_price, ci.unit_price, ci.duration_from, ci.duration_to, i.id AS item_id, i.uuid AS item_uuid, i.name, i.photo, i.price, i.price_duration, sf.uuid AS storefront_uuid FROM (SELECT ci_i.id FROM kudaki_rental.cart_items ci_i JOIN kudaki_store.items i_i ON ci_i.item_uuid = i_i.uuid JOIN kudaki_store.storefronts sf_i ON i_i.storefront_uuid = sf_i.uuid WHERE ci_i.cart_uuid = ? LIMIT ?, ?) ci_ids JOIN kudaki_rental.cart_items ci ON ci.id = ci_ids.id JOIN kudaki_store.items i ON ci.item_uuid = i.uuid JOIN kudaki_store.storefronts sf ON i.storefront_uuid = sf.uuid;",
 		cartTemp.Uuid, inEvent.Offset, inEvent.Limit)
 	errorkit.ErrorHandled(err)
+	defer rows.Close()
 
 	var cartItemTemps []*CartItemTemp
 	for rows.Next() {
@@ -98,6 +99,7 @@ func (rci *RetrieveCartItems) retrieveStorefronts(cartTemp *CartTemp, inEvent *e
 	rows, err := rci.DBO.Query("SELECT sf.id, sf.uuid, p.full_name, u.email, u.phone_number FROM (SELECT id FROM kudaki_rental.cart_items ci_i WHERE ci_i.cart_uuid = ? LIMIT ?, ? ) ci_ids JOIN kudaki_rental.cart_items ci ON ci.id = ci_ids.id JOIN kudaki_store.items i ON ci.item_uuid = i.uuid JOIN kudaki_store.storefronts sf ON sf.uuid = i.storefront_uuid JOIN kudaki_user.users u ON sf.user_uuid = u.uuid JOIN kudaki_user.profiles p ON u.uuid = p.user_uuid GROUP BY sf.uuid;",
 		cartTemp.Uuid, inEvent.Offset, inEvent.Limit)
 	errorkit.ErrorHandled(err)
+	defer rows.Close()
 
 	var storefrontTemps []*StorefrontTemp
 
